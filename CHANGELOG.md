@@ -69,6 +69,8 @@
 
 - **unifi:** Version-agnostic WebSocket subscribe and Decode
 
+- **cli:** Auto-load `.env` and add `--env-file` flag (flags > env > .env)
+
 
 ### Refactor
 

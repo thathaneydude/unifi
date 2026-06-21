@@ -107,6 +107,19 @@ unifi protect GetV1Cameras                # call an operation → JSON
 unifi network GetInfo --format human      # human-readable view
 ```
 
+The CLI also auto-loads a `.env` file from the working directory if present (use `--env-file <path>`
+for a custom location). Real environment variables and flags take precedence, so the resolution order
+is **flags > environment > `.env`**:
+
+```sh
+# .env in the current directory
+UNIFI_API_KEY=your-api-key
+UNIFI_HOST=192.168.1.1
+
+unifi network GetInfo            # picks up .env automatically
+unifi network GetInfo --env-file ./prod.env
+```
+
 Realtime Protect subscriptions are intentionally **SDK-only** (see below), not exposed by the CLI.
 
 ## Documentation
