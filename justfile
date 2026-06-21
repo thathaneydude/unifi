@@ -77,9 +77,13 @@ test-e2e:
 
 # --- Release ----------------------------------------------------------------
 
-# Regenerate CHANGELOG.md from Conventional Commits.
+# Prepend unreleased Conventional Commits to CHANGELOG.md (append-only).
+# Does NOT regenerate the whole file: the 0.1.0 baseline was carried over from
+# the old unifi-sdk repo (squashed history) and cannot be reproduced from git,
+# so a full `git cliff --output` would clobber it. At release time, pass the
+# tag, e.g. `git cliff --tag v0.2.0 --unreleased --prepend CHANGELOG.md`.
 changelog:
-    git cliff --output CHANGELOG.md
+    git cliff --unreleased --prepend CHANGELOG.md
 
 # Validate the goreleaser config and run a snapshot release (no publish).
 release-snapshot:
