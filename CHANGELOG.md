@@ -1,15 +1,6 @@
 # Changelog
 
-<!--
-Baseline note: the 0.1.0 section below was carried over from the original
-unifi-sdk repository, whose granular commit history was squashed into a single
-commit during migration. It cannot be reproduced by regenerating from git
-history, so it is maintained by hand. New entries are prepended above it by
-`just changelog` (append-only); never run a full `git cliff --output`, which
-would clobber this baseline.
--->
-
-## [0.1.0] - 2026-06-21
+## [unreleased]
 
 ### Documentation
 
