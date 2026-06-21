@@ -16,8 +16,20 @@ discovery).
 
 ## Installation
 
+### CLI
+
+Download a prebuilt binary for your platform (macOS, Linux, Windows — amd64/arm64) from the
+[latest release](https://github.com/thathaneydude/unifi/releases/latest), extract it, and put the
+`unifi` binary on your `PATH`. Or install with Go:
+
 ```
-go get github.com/thathaneydude/unifi
+go install github.com/thathaneydude/unifi/cmd/unifi@latest
+```
+
+### SDK
+
+```
+go get github.com/thathaneydude/unifi@latest
 ```
 
 ## Usage
