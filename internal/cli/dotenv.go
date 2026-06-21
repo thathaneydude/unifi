@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 )
 
@@ -66,4 +67,31 @@ func unquote(v string) string {
 		}
 	}
 	return v
+}
+
+// loadDotenv reads the dotenv file at path and exports each pair into the
+// process environment, but only for keys not already set, so the real
+// environment always wins. A missing file is a no-op when required is false (the
+// default ./.env) and a usage error when required is true (an explicit
+// --env-file). Parse failures are usage errors.
+func loadDotenv(path string, required bool) error {
+	f, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) && !required {
+			return nil
+		}
+		return NewUsageError(fmt.Sprintf("cannot read env file %q: %v", path, err))
+	}
+	defer func() { _ = f.Close() }()
+
+	vars, err := parseDotenv(f)
+	if err != nil {
+		return NewUsageError(fmt.Sprintf("env file %q: %v", path, err))
+	}
+	for k, v := range vars {
+		if _, ok := os.LookupEnv(k); !ok {
+			_ = os.Setenv(k, v)
+		}
+	}
+	return nil
 }
