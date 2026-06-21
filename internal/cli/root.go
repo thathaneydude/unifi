@@ -78,11 +78,11 @@ func NewRootCommand() (*cobra.Command, error) {
 }
 
 func resolveFromFlags(gf *globalFlags) (*unifi.Conn, error) {
-	path, required := ".env", false
+	envPath, required := ".env", false
 	if gf.envFile != "" {
-		path, required = gf.envFile, true
+		envPath, required = gf.envFile, true
 	}
-	if err := loadDotenv(path, required); err != nil {
+	if err := loadDotenv(envPath, required); err != nil {
 		return nil, err
 	}
 	cfg := ConfigFromEnv()

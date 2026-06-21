@@ -60,6 +60,13 @@ var _ = Describe("parseDotenv", func() {
 	It("errors on an invalid key", func() {
 		_, err := parseDotenv(strings.NewReader("1BAD=x"))
 		Expect(err).To(MatchError(ContainSubstring("invalid key")))
+		Expect(err).To(MatchError(ContainSubstring("line 1")))
+	})
+
+	It("errors on an invalid key with export prefix", func() {
+		_, err := parseDotenv(strings.NewReader("export 1BAD=x"))
+		Expect(err).To(MatchError(ContainSubstring("invalid key")))
+		Expect(err).To(MatchError(ContainSubstring("line 1")))
 	})
 })
 
@@ -85,10 +92,10 @@ var _ = Describe("loadDotenv", func() {
 
 	It("sets variables that are not already in the environment", func() {
 		p := write(GinkgoT().TempDir(), "UNIFI_FROM_FILE=fromfile")
+		DeferCleanup(func() { _ = os.Unsetenv("UNIFI_FROM_FILE") })
 		Expect(os.Getenv("UNIFI_FROM_FILE")).To(BeEmpty())
 		Expect(loadDotenv(p, true)).To(Succeed())
 		Expect(os.Getenv("UNIFI_FROM_FILE")).To(Equal("fromfile"))
-		Expect(os.Unsetenv("UNIFI_FROM_FILE")).To(Succeed())
 	})
 
 	It("never overwrites a variable already set in the real environment", func() {
@@ -112,24 +119,28 @@ var _ = Describe("resolveFromFlags with env files", func() {
 		dir := GinkgoT().TempDir()
 		p := filepath.Join(dir, "creds.env")
 		Expect(os.WriteFile(p, []byte("UNIFI_API_KEY=k\nUNIFI_HOST=192.168.1.1\n"), 0o600)).To(Succeed())
+		DeferCleanup(func() {
+			_ = os.Unsetenv("UNIFI_API_KEY")
+			_ = os.Unsetenv("UNIFI_HOST")
+		})
 
 		conn, err := resolveFromFlags(&globalFlags{envFile: p})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(conn).NotTo(BeNil())
-		Expect(os.Unsetenv("UNIFI_API_KEY")).To(Succeed())
-		Expect(os.Unsetenv("UNIFI_HOST")).To(Succeed())
 	})
 
 	It("auto-loads ./.env from the working directory", func() {
 		dir := GinkgoT().TempDir()
 		Expect(os.WriteFile(filepath.Join(dir, ".env"), []byte("UNIFI_API_KEY=k\nUNIFI_CONSOLE_ID=abc\n"), 0o600)).To(Succeed())
 		GinkgoT().Chdir(dir)
+		DeferCleanup(func() {
+			_ = os.Unsetenv("UNIFI_API_KEY")
+			_ = os.Unsetenv("UNIFI_CONSOLE_ID")
+		})
 
 		conn, err := resolveFromFlags(&globalFlags{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(conn).NotTo(BeNil())
-		Expect(os.Unsetenv("UNIFI_API_KEY")).To(Succeed())
-		Expect(os.Unsetenv("UNIFI_CONSOLE_ID")).To(Succeed())
 	})
 
 	It("errors when an explicit --env-file is missing", func() {
