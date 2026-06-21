@@ -1,22 +1,22 @@
 ---
 title: Functional Requirements
 author: thathaneydude
-description: What the UniFi SDK must do — actors, functional and non-functional requirements, acceptance criteria.
+description: What UniFi must do — actors, functional and non-functional requirements, acceptance criteria.
 status: Accepted
 date: 2026-06-20
 tags:
   - requirements
 ---
 
-# Functional Requirements — UniFi SDK
+# Functional Requirements — UniFi
 
-> This document defines **what** the UniFi SDK must do. The **how** lives in the
+> This document defines **what** UniFi must do. The **how** lives in the
 > [design](../design/architecture.md) docs and the
 > [architecture decision records](../design/decisions/index.md).
 
 ## 1. Purpose & scope
 
-The UniFi SDK is a SemVer-versioned **Go** module that provides typed, generated clients for the
+UniFi is a SemVer-versioned **Go** module that provides typed, generated clients for the
 official **UniFi Network** and **UniFi Protect** integration APIs, plus a thin hand-written layer that
 makes authentication — **local or remote** — trivial. It also ships a **CLI** (`unifi`) whose primary
 user is an **LLM agent**: a co-equal product built on the same core and specs.

@@ -1,7 +1,7 @@
 ---
 title: Architecture
 author: thathaneydude
-description: How the UniFi SDK is structured — generated lib packages, the hand-written core, transport, and realtime.
+description: How UniFi is structured — generated lib packages, the hand-written core, transport, and realtime.
 status: Accepted
 date: 2026-06-20
 tags:
@@ -9,7 +9,7 @@ tags:
   - architecture
 ---
 
-# Architecture — UniFi SDK
+# Architecture — UniFi
 
 This document describes how the SDK is structured and how data flows through it. It implements the
 [functional requirements](../requirements/functional-requirements.md) and reflects the

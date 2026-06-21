@@ -1,7 +1,7 @@
 ---
 title: Architecture Decision Records
 author: thathaneydude
-description: Index of accepted design decisions for the UniFi SDK.
+description: Index of accepted design decisions for UniFi.
 tags:
   - adr
 ---

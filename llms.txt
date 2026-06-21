@@ -1,4 +1,4 @@
-# UniFi SDK
+# UniFi
 
 > A SemVer-versioned Go SDK (module `github.com/thathaneydude/unifi`, Go 1.26) for the official
 > UniFi Network and UniFi Protect integration APIs. Clients are generated from OpenAPI with

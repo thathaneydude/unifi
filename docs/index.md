@@ -1,12 +1,12 @@
 ---
-title: UniFi SDK
+title: UniFi
 author: thathaneydude
 description: A SemVer-versioned Go SDK for the UniFi Network and Protect integration APIs.
 status: Draft
 date: 2026-06-20
 ---
 
-# UniFi SDK
+# UniFi
 
 A SemVer-versioned **Go** SDK — and a spec-driven **CLI** for LLM agents — for the official
 **UniFi Network** and **UniFi Protect** integration APIs, generated from OpenAPI with a thin

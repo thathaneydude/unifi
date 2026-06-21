@@ -85,7 +85,7 @@ func main() {
 
 ## CLI (for LLM agents)
 
-> Status: in active development on the `feat/sdk-foundation` branch.
+> Status: in active development on `main`.
 
 The `unifi` CLI exposes every Network and Protect REST operation, generated at runtime from the
 same OpenAPI specs that drive the SDK. Its primary user is an LLM agent that shells out to it,
