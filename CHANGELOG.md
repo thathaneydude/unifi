@@ -40,6 +40,8 @@
 
 - **examples:** Add local and remote runnable examples
 
+- **adr:** Add ADR-0011 for CLI .env auto-loading
+
 
 ### Features
 

@@ -22,3 +22,4 @@ Each ADR captures one significant decision, its context, and consequences.
 | [0008](0008-conventional-commits-and-releases.md) | Conventional Commits, git-cliff, and goreleaser |
 | [0009](0009-docs-site-mkdocs.md) | Documentation site on MkDocs Material via GitHub Pages |
 | [0010](0010-testing-ginkgo-gomega-counterfeiter.md) | Testing with Ginkgo, Gomega, and counterfeiter |
+| [0011](0011-cli-dotenv-autoloading.md) | CLI auto-loads a `.env` file with a zero-dependency parser |
