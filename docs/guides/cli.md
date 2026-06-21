@@ -33,6 +33,29 @@ Credentials come from flags, then environment:
 
 Set exactly one of host / console-id.
 
+### .env files
+
+Credentials may also live in a `.env` file. The CLI auto-loads `./.env` from the working directory
+when it exists; pass `--env-file <path>` to load a specific file instead. Resolution order is
+**flags > environment > `.env`** — values already set in the real environment are never overwritten,
+and flags still override everything.
+
+```sh
+# .env
+UNIFI_API_KEY=your-api-key
+UNIFI_HOST=192.168.1.1
+
+unifi network GetInfo                 # auto-loads ./.env
+unifi network GetInfo --env-file ./prod.env
+```
+
+The grammar is deliberately small: blank lines and `#` comment lines are ignored, an optional leading
+`export ` is stripped, the line splits on the first `=`, and a value wrapped in matching single or
+double quotes keeps its inner text literally (unquoted values are whitespace-trimmed). There is no
+inline-comment stripping and no escape expansion. A missing `./.env` is ignored; a missing file named
+explicitly with `--env-file` is a usage error. `.env` is gitignored, so secrets stay out of version
+control.
+
 ## Discover
 
 ```sh

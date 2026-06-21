@@ -11,6 +11,27 @@ would clobber this baseline.
 
 ## [0.1.0] - 2026-06-21
 
+### Documentation
+
+- **adr:** Add ADR-0011 for CLI .env auto-loading
+
+
+### Features
+
+- **cli:** Auto-load `.env` and add `--env-file` flag (flags > env > .env)
+
+
+<!--
+Baseline note: the 0.1.0 section below was carried over from the original
+unifi-sdk repository, whose granular commit history was squashed into a single
+commit during migration. It cannot be reproduced by regenerating from git
+history, so it is maintained by hand. New entries are prepended above it by
+`just changelog` (append-only); never run a full `git cliff --output`, which
+would clobber this baseline.
+-->
+
+## [0.1.0] - 2026-06-21
+
 ### Bug Fixes
 
 - **specgen:** Full OpenAPI validation via enum-example stripping; tidy deps; add tests
