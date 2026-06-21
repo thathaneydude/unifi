@@ -1,0 +1,71 @@
+name: spec-sync
+
+# Runs daily at 06:00 UTC, or on demand.
+# Future enhancement (not implemented): a second mode could read
+# specs/versions.yaml, query the upstream mirror for newer versions, append
+# them to that file, and open a separate PR so a human can review which new
+# API versions become tracked.
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+# Least privilege: read-only by default; the resync job adds the write access
+# needed to push the bot branch and open a PR. The GITHUB_TOKEN is referenced
+# only by the create-pull-request step.
+permissions:
+  contents: read
+
+jobs:
+  resync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: true
+
+      - name: Set up just
+        uses: extractions/setup-just@v2
+
+      - name: Re-sync specs and regenerate artifacts
+        run: |
+          just sync
+          just gen
+          go generate ./...
+
+      - name: Open PR if anything changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bot/spec-resync
+          commit-message: "chore(specs): re-sync pinned specs from upstream mirror"
+          title: "chore(specs): re-sync pinned specs from upstream mirror"
+          body: |
+            ## Summary
+
+            This automated PR was opened by the `spec-sync` workflow after
+            detecting that the pinned specs or generated artifacts drifted from
+            what the upstream mirror currently provides.
+
+            The following steps were run to produce this diff:
+
+            ```
+            just sync       # fetches pinned specs from the upstream mirror → specs/build
+            just gen        # runs go generate ./... (oapi-codegen + counterfeiter)
+            go generate ./... # belt-and-suspenders re-run
+            ```
+
+            Please review the diff, run the test suite, and merge if everything
+            looks correct.
+          labels: "automated,specs"
+          draft: false

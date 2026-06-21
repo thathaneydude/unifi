@@ -1,0 +1,141 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# Least privilege by default: the workflow grants only read access and exposes
+# no secrets at the workflow level. Each job below requests only what it needs,
+# and the e2e job is the only one that references repository secrets — scoped to
+# the single step that runs the real-console specs.
+permissions:
+  contents: read
+
+jobs:
+  # Build, module integrity, codegen drift guard, and lint. No secrets needed.
+  verify:
+    name: build / drift-guard / lint
+    runs-on: ubuntu-latest
+    # Only the repository owner may trigger CI. The repo is private with the
+    # owner as the sole collaborator; this guard keeps CI owner-only even if
+    # visibility or collaborators change.
+    if: ${{ github.actor == github.repository_owner }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: true
+
+      - name: Set up just
+        uses: extractions/setup-just@v2
+
+      - name: Verify module integrity
+        run: go mod verify
+
+      # Drift guard: re-run the full codegen pipeline and fail if anything in
+      # the working tree changed. `just sync` fetches pinned specs from the
+      # upstream mirror and writes specs/build; `just gen` (go generate ./...)
+      # regenerates lib/** clients and counterfeiter fakes from those specs.
+      - name: Drift guard (sync + gen)
+        run: |
+          just sync
+          just gen
+          go generate ./...
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Generated artifacts are stale. Run 'just sync && just gen && go generate ./...' and commit."
+            git --no-pager diff --stat
+            exit 1
+          fi
+
+      - name: Build
+        run: just build
+
+      # Uses the pinned go-tool golangci-lint v2 declared in go.mod so the
+      # version is identical to local runs — no separate action.
+      - name: Lint
+        run: just lint
+
+  # Unit tests (Ginkgo). No secrets needed; runs on every pull request and push.
+  unit:
+    name: unit tests
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == github.repository_owner }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: true
+
+      - name: Set up just
+        uses: extractions/setup-just@v2
+
+      - name: Unit tests
+        run: just test
+
+  # End-to-end tests (Ginkgo, build tag `e2e`). The mock-server specs always
+  # run; the real-console specs run only when their credentials are present and
+  # otherwise Skip. Those credentials are the ONLY secrets this workflow uses,
+  # and they are scoped to this single step.
+  e2e:
+    name: e2e tests
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == github.repository_owner }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: true
+
+      - name: Set up just
+        uses: extractions/setup-just@v2
+
+      - name: E2E tests
+        run: just test-e2e
+        env:
+          # Real-console credentials, exposed to this step only. Unset on forked
+          # PRs (and when not configured), in which case the real-console specs
+          # Skip and the mock-server specs still run.
+          UNIFI_HOST: ${{ secrets.UNIFI_HOST }}
+          UNIFI_API_KEY: ${{ secrets.UNIFI_API_KEY }}
+          UNIFI_CONSOLE_ID: ${{ secrets.UNIFI_CONSOLE_ID }}
+          UNIFI_SM_KEY: ${{ secrets.UNIFI_SM_KEY }}
+
+  # Conventional Commits enforcement. Reads commit history only.
+  commit-lint:
+    name: commit lint
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == github.repository_owner }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Tag v0.1.0-alpha.31 verified via:
+      #   git ls-remote --tags https://github.com/siderolabs/conform
+      - name: Enforce Conventional Commits
+        uses: siderolabs/conform@v0.1.0-alpha.31

@@ -1,0 +1,73 @@
+site_name: UniFi SDK
+site_description: A SemVer-versioned Go SDK for the UniFi Network and Protect integration APIs.
+site_author: thathaneydude
+repo_url: https://github.com/thathaneydude/unifi
+repo_name: thathaneydude/unifi
+docs_dir: docs
+
+# Working docs kept in the repo but not published to the site.
+exclude_docs: |
+  plans/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: index.md
+  - Requirements:
+      - Functional requirements: requirements/functional-requirements.md
+  - Design:
+      - Architecture: design/architecture.md
+      - Authentication & transport: design/authentication.md
+      - Spec augmentation: design/spec-augmentation.md
+      - Decision records:
+          - Overview: design/decisions/index.md
+          - ADR-0001 oapi-codegen: design/decisions/0001-generate-from-openapi-with-oapi-codegen.md
+          - ADR-0002 Local & remote transports: design/decisions/0002-local-and-remote-transports.md
+          - ADR-0003 Pull specs in CI: design/decisions/0003-pull-specs-in-ci-not-vendored.md
+          - ADR-0004 Coexisting versioned lib: design/decisions/0004-coexisting-versioned-lib-packages.md
+          - ADR-0005 WebSocket client: design/decisions/0005-hand-written-websocket-client.md
+          - ADR-0006 Generated client only: design/decisions/0006-generated-client-only.md
+          - ADR-0007 Protect version pin: design/decisions/0007-protect-version-pin.md
+          - ADR-0008 Commits & releases: design/decisions/0008-conventional-commits-and-releases.md
+          - ADR-0009 Docs site: design/decisions/0009-docs-site-mkdocs.md
+          - ADR-0010 Testing: design/decisions/0010-testing-ginkgo-gomega-counterfeiter.md
+  - Guides:
+      - Getting started: guides/getting-started.md
+      - Local vs remote: guides/local-vs-remote.md
+      - Protect realtime: guides/protect-realtime.md
+      - CLI for LLM agents: guides/cli.md
+  - Reference:
+      - Overview: reference/index.md
+      - Go API: reference/unifi.md
+      - Network OpenAPI: openapi/network.md
+      - Protect OpenAPI: openapi/protect.md
+  - Changelog: changelog.md

@@ -1,0 +1,23 @@
+# Code owners for unifi.
+#
+# Owners listed here are automatically requested for review when matching
+# files change. Later matches take precedence over earlier ones.
+# https://docs.github.com/en/repositories/managing-your-repositories-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo.
+*                       @thathaneydude
+
+# Generated code and build specs — owned, but changes should come from
+# `just sync` / `just gen`, never hand edits (see .github/AGENTS.md).
+/lib/                   @thathaneydude
+/specs/build/           @thathaneydude
+
+# Spec pipeline, SDK core, and release/CI tooling.
+/tools/specgen/         @thathaneydude
+/unifi/                 @thathaneydude
+/.github/               @thathaneydude
+/.goreleaser.yaml       @thathaneydude
+/cliff.toml             @thathaneydude
+
+# Documentation.
+/docs/                  @thathaneydude

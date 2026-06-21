@@ -1,0 +1,32 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "fixture", "version": "1.0.0" },
+  "paths": {
+    "/v1/widgets": {
+      "get": {
+        "operationId": "ListWidgets",
+        "summary": "List widgets",
+        "parameters": [
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer" } }
+        ]
+      },
+      "post": {
+        "operationId": "CreateWidget",
+        "summary": "Create a widget",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object" } } }
+        }
+      }
+    },
+    "/v1/widgets/{id}": {
+      "get": {
+        "operationId": "GetWidget",
+        "summary": "Get a widget",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ]
+      }
+    }
+  }
+}

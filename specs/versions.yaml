@@ -1,0 +1,13 @@
+# Source of truth for pinned UniFi application versions.
+# The spec-sync bot appends new versions (coexist) and moves `default`.
+mirror: https://raw.githubusercontent.com/opastorello/unifi-api-docs/HEAD
+retain: all
+apps:
+  network:
+    default: v10.3.58
+    versions:
+      - v10.3.58
+  protect:
+    default: v7.1.46
+    versions:
+      - v7.1.46

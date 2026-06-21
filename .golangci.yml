@@ -1,0 +1,37 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - ineffassign
+    - revive
+
+  settings:
+    revive:
+      rules:
+        # Ginkgo-style tests use dot imports by convention.
+        - name: dot-imports
+          disabled: true
+        # Unused parameters are common in test helper callbacks.
+        - name: unused-parameter
+          disabled: true
+        # Package-level doc comments are optional for internal packages.
+        - name: package-comments
+          disabled: true
+        # Block-level export comments are optional for simple constants.
+        - name: exported
+          disabled: true
+
+  exclusions:
+    # Treat generated files as strict: golangci-lint will detect and skip them
+    # automatically when they have the standard "Code generated" header.
+    generated: strict
+    paths:
+      # Exclude all generated lib packages — never edit by hand.
+      - "^lib/"
+      - "lib/"
+      # Exclude counterfeiter fakes — generated code.
+      - "internalfakes/"

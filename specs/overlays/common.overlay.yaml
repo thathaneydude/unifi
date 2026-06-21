@@ -1,0 +1,26 @@
+overlay: 1.0.0
+info:
+  title: UniFi common augmentation
+  version: 1.0.0
+actions:
+  - target: $.components.securitySchemes
+    update:
+      ApiKeyAuth:
+        type: apiKey
+        in: header
+        name: X-API-KEY
+  - target: $.security
+    update:
+      - ApiKeyAuth: []
+  - target: $.servers
+    update:
+      - url: "https://{host}/proxy/{app}/integration"
+        description: Local console
+        variables:
+          host: { default: "unifi.local" }
+          app: { enum: [network, protect], default: network }
+      - url: "https://api.ui.com/v1/connector/consoles/{consoleId}/{app}/integration"
+        description: Remote cloud connector
+        variables:
+          consoleId: { default: "your-console-id" }
+          app: { enum: [network, protect], default: network }

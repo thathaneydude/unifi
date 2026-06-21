@@ -1,0 +1,59 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "edgecases", "version": "1.0.0" },
+  "paths": {
+    "/v1/things/{id}": {
+      "parameters": [
+        { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } },
+        { "name": "shared", "in": "query", "required": false, "description": "path-item level", "schema": { "type": "string" } }
+      ],
+      "get": {
+        "operationId": "GetThing",
+        "summary": "Get a thing",
+        "parameters": [
+          { "name": "shared", "in": "query", "required": true, "description": "operation override", "schema": { "type": "string" } }
+        ]
+      }
+    },
+    "/v1/items/{id}": {
+      "put": {
+        "operationId": "PutItem",
+        "summary": "Replace an item",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "id", "in": "query", "required": false, "description": "query id", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": { "application/json": { "schema": { "type": "object" } } }
+        }
+      }
+    },
+    "/v1/upload": {
+      "post": {
+        "operationId": "UploadBlob",
+        "summary": "Upload a blob",
+        "requestBody": {
+          "content": { "application/octet-stream": { "schema": { "type": "string" } } }
+        }
+      }
+    },
+    "/v1/multi": {
+      "post": {
+        "operationId": "MultiBody",
+        "summary": "Multiple media types",
+        "requestBody": {
+          "content": {
+            "application/xml": { "schema": { "type": "object" } },
+            "application/json": { "schema": { "type": "object" } }
+          }
+        }
+      }
+    },
+    "/v1/foo-bar": {
+      "get": { "summary": "dash form" }
+    },
+    "/v1/foo_bar": {
+      "get": { "summary": "underscore form" }
+    }
+  }
+}

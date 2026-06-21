@@ -28,5 +28,30 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+
+# Transient upstream spec cache (pulled by `just sync`; never committed)
+specs/.cache/
+
+# Generated release notes
+RELEASE_NOTES.md
+
+# Built docs site
+site/
+
+# Generated docs artifacts (produced by just docs-prepare; never committed)
+docs/reference/unifi.md
+docs/openapi/*.openapi.json
+
+# Working planning docs (kept locally, excluded from the site and VCS)
+docs/plans/
+
+# Superpowers brainstorming specs and plans (working artifacts, never committed)
+docs/superpowers/
+
+# Compiled CLI binary (just build-cli)
+/bin/
+
+# Stray specgen binary from `go build ./tools/specgen`
+/specgen

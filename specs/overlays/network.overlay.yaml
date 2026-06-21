@@ -1,0 +1,8 @@
+overlay: 1.0.0
+info:
+  title: UniFi Network augmentation
+  version: 1.0.0
+actions:
+  - target: $.servers[*].variables.app
+    update:
+      default: network
