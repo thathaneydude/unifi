@@ -106,3 +106,36 @@ var _ = Describe("loadDotenv", func() {
 		Expect(err.(*CLIError).ExitCode()).To(Equal(1))
 	})
 })
+
+var _ = Describe("resolveFromFlags with env files", func() {
+	It("loads connection config from an explicit --env-file", func() {
+		dir := GinkgoT().TempDir()
+		p := filepath.Join(dir, "creds.env")
+		Expect(os.WriteFile(p, []byte("UNIFI_API_KEY=k\nUNIFI_HOST=192.168.1.1\n"), 0o600)).To(Succeed())
+
+		conn, err := resolveFromFlags(&globalFlags{envFile: p})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(conn).NotTo(BeNil())
+		Expect(os.Unsetenv("UNIFI_API_KEY")).To(Succeed())
+		Expect(os.Unsetenv("UNIFI_HOST")).To(Succeed())
+	})
+
+	It("auto-loads ./.env from the working directory", func() {
+		dir := GinkgoT().TempDir()
+		Expect(os.WriteFile(filepath.Join(dir, ".env"), []byte("UNIFI_API_KEY=k\nUNIFI_CONSOLE_ID=abc\n"), 0o600)).To(Succeed())
+		GinkgoT().Chdir(dir)
+
+		conn, err := resolveFromFlags(&globalFlags{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(conn).NotTo(BeNil())
+		Expect(os.Unsetenv("UNIFI_API_KEY")).To(Succeed())
+		Expect(os.Unsetenv("UNIFI_CONSOLE_ID")).To(Succeed())
+	})
+
+	It("errors when an explicit --env-file is missing", func() {
+		_, err := resolveFromFlags(&globalFlags{envFile: filepath.Join(GinkgoT().TempDir(), "nope.env")})
+		var cerr *CLIError
+		Expect(err).To(BeAssignableToTypeOf(cerr))
+		Expect(err.(*CLIError).ExitCode()).To(Equal(1))
+	})
+})

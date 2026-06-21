@@ -17,6 +17,7 @@ type globalFlags struct {
 	consoleID string
 	insecure  bool
 	format    string
+	envFile   string
 }
 
 // NewRootCommand assembles the full `unifi` command tree from the embedded specs.
@@ -51,6 +52,7 @@ func NewRootCommand() (*cobra.Command, error) {
 	pf.StringVar(&gf.consoleID, "console-id", "", "remote console id (or UNIFI_CONSOLE_ID)")
 	pf.BoolVar(&gf.insecure, "insecure", false, "skip TLS verification (or UNIFI_INSECURE)")
 	pf.StringVar(&gf.format, "format", "json", "output format: json|raw|human")
+	pf.StringVar(&gf.envFile, "env-file", "", "path to a .env file (default ./.env if present)")
 
 	deps := runDeps{
 		connFn: func() (*unifi.Conn, error) { return resolveFromFlags(gf) },
@@ -76,6 +78,13 @@ func NewRootCommand() (*cobra.Command, error) {
 }
 
 func resolveFromFlags(gf *globalFlags) (*unifi.Conn, error) {
+	path, required := ".env", false
+	if gf.envFile != "" {
+		path, required = gf.envFile, true
+	}
+	if err := loadDotenv(path, required); err != nil {
+		return nil, err
+	}
 	cfg := ConfigFromEnv()
 	if gf.apiKey != "" {
 		cfg.APIKey = gf.apiKey
