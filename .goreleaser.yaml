@@ -1,4 +1,4 @@
-# goreleaser configuration — UniFi SDK
+# goreleaser configuration — UniFi
 #
 # This repo ships both a Go SDK and the `unifi` CLI binary. goreleaser builds
 # the CLI for multiple platforms and cuts tag-driven GitHub releases. Release

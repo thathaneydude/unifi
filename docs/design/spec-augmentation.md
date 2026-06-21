@@ -9,7 +9,7 @@ tags:
   - openapi
 ---
 
-# Spec Augmentation — UniFi SDK
+# Spec Augmentation — UniFi
 
 ## Problem
 

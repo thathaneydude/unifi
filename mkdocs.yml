@@ -1,4 +1,4 @@
-site_name: UniFi SDK
+site_name: UniFi
 site_description: A SemVer-versioned Go SDK for the UniFi Network and Protect integration APIs.
 site_author: thathaneydude
 repo_url: https://github.com/thathaneydude/unifi

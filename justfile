@@ -1,4 +1,4 @@
-# UniFi SDK task runner.
+# UniFi task runner.
 # Run `just` (or `just help`) to list available recipes.
 
 # Local docs preview address.

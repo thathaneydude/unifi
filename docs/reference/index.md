@@ -1,14 +1,14 @@
 ---
 title: Go API Reference
 author: thathaneydude
-description: Go API reference for the unifi package — the hand-written public surface of the UniFi SDK.
+description: Go API reference for the unifi package — the hand-written public surface of UniFi.
 status: Draft
 date: 2026-06-20
 ---
 
 # Go API Reference
 
-This section documents the **`unifi` package** — the hand-written public surface of the UniFi SDK.
+This section documents the **`unifi` package** — the hand-written public surface of UniFi.
 
 The generated reference (`unifi.md`) is produced during the docs build by
 [gomarkdoc](https://github.com/princjef/gomarkdoc) via `just docs-reference`. It is not committed to

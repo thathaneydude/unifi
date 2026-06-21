@@ -9,7 +9,7 @@ tags:
   - authentication
 ---
 
-# Authentication & Transport — UniFi SDK
+# Authentication & Transport — UniFi
 
 ## API key
 
