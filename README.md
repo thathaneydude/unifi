@@ -136,12 +136,24 @@ Realtime Protect subscriptions are intentionally **SDK-only** (see below), not e
 
 ## Security assessment skills
 
-The `skills/` directory ships read-only Agent Skills that drive the CLI to audit
-a UniFi deployment and produce a severity-ranked findings report. The
-`unifi-security-assessment` orchestrator runs four focused domain skills
-(`unifi-network-security`, `unifi-segmentation-wifi`, `unifi-asset-inventory`,
-`unifi-protect-security`) as parallel subagents. They never mutate
-configuration. Validate their structure with `just validate-skills`.
+The [`skills/`](skills/) directory ships read-only [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills)
+that drive the CLI to audit a UniFi deployment and produce a severity-ranked
+findings report. The `unifi-security-assessment` orchestrator runs four focused
+domain skills (`unifi-network-security`, `unifi-segmentation-wifi`,
+`unifi-asset-inventory`, `unifi-protect-security`) as parallel subagents. They
+never mutate configuration — only read-only operations are used, enforced by
+`just validate-skills`.
+
+See [`skills/README.md`](skills/README.md) for installation and usage. In short:
+
+```sh
+# Install (Claude Code, personal scope)
+mkdir -p ~/.claude/skills && cp -R skills/unifi-* ~/.claude/skills/
+
+# Then, with the unifi CLI on PATH and credentials set, ask your agent:
+#   "Run a UniFi security assessment of my deployment."
+# → writes ./unifi-assessment-YYYY-MM-DD.md
+```
 
 ## Documentation
 
