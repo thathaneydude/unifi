@@ -147,8 +147,8 @@ never mutate configuration — only read-only operations are used, enforced by
 See [`skills/README.md`](skills/README.md) for installation and usage. In short:
 
 ```sh
-# Install (Claude Code, personal scope)
-mkdir -p ~/.claude/skills && cp -R skills/unifi-* ~/.claude/skills/
+# Install with the skills CLI (https://github.com/vercel-labs/skills)
+npx skills add thathaneydude/unifi -g -a claude-code
 
 # Then, with the unifi CLI on PATH and credentials set, ask your agent:
 #   "Run a UniFi security assessment of my deployment."

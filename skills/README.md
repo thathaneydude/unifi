@@ -39,35 +39,33 @@ finding shape).
    shell out to `unifi`, which handles auth. Run `unifi network getInfo` once to
    confirm the CLI reaches your console before assessing.
 
-## Install (Claude Code)
+## Install
 
-Skills are discovered from a `skills/` directory under `~/.claude` (personal) or
-`.claude` in a project (project-scoped). Copy the five skill directories into one
-of those locations:
-
-```sh
-# Personal — available in every session
-mkdir -p ~/.claude/skills
-cp -R unifi-security-assessment unifi-network-security unifi-segmentation-wifi \
-      unifi-asset-inventory unifi-protect-security ~/.claude/skills/
-
-# …or project-scoped — available only inside a specific repo
-mkdir -p /path/to/project/.claude/skills
-cp -R unifi-* /path/to/project/.claude/skills/
-```
-
-To track upstream changes instead of copying, symlink them:
+Use the [`skills` CLI](https://github.com/vercel-labs/skills) to install these
+directly from the repo — it auto-discovers the skills under `skills/`:
 
 ```sh
-for d in unifi-security-assessment unifi-network-security unifi-segmentation-wifi \
-         unifi-asset-inventory unifi-protect-security; do
-  ln -s "$(pwd)/$d" ~/.claude/skills/"$d"
-done
+# See what's available
+npx skills add thathaneydude/unifi --list
+
+# Install all of them for Claude Code, globally (available in every session)
+npx skills add thathaneydude/unifi -g -a claude-code
+
+# …or a subset — always include the orchestrator (see note)
+npx skills add thathaneydude/unifi \
+  --skill unifi-security-assessment --skill unifi-network-security -g -a claude-code
 ```
 
-> **Other agents:** these `SKILL.md` files are model-agnostic Markdown
-> instructions. Any agent that can run shell commands can follow them — install
-> them wherever that agent loads skills, or just point it at a skill file.
+Drop `-g` to install into the current project (`.claude/skills/`) instead of
+`~/.claude/skills/`. Use `-a` to target other agents (e.g. `-a codex`,
+`-a opencode`) — the `SKILL.md` files are model-agnostic Markdown, so any
+shell-capable agent can follow them.
+
+> **Install the orchestrator alongside any domain skill.** The four domain skills
+> reference the orchestrator's shared files via
+> `../unifi-security-assessment/references/…`. Installing everything (the default)
+> is simplest; if you cherry-pick with `--skill`, always include
+> `unifi-security-assessment`.
 
 ## Use
 
