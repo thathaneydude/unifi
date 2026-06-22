@@ -48,9 +48,11 @@ Collect all findings, de-duplicate, and sort by severity using the order in
 
 ### 4. Write report
 Render `references/report-template.md` to `./unifi-assessment-YYYY-MM-DD.md` in
-the working directory. Record this skill's frontmatter `version` and each sub-skill's
-version in the executive summary so the report can be regenerated and diffed
-against improved skills.
+the working directory. In the executive summary, record this skill's frontmatter
+`version` and each sub-skill's version, AND the AI model name + version running
+this assessment (e.g. `Claude Opus 4.8 (claude-opus-4-8)`) — state your own model
+identity. This lets the report be regenerated and diffed when skills improve or a
+newer model re-evaluates the same deployment.
 
 ## Guardrails
 - Read-only: never call mutating operations (Network `create*`/`update*`/`patch*`/`delete*`/`adopt*`/`remove*`/`execute*`; Protect `PostV1*`/`PutV1*`/`PatchV1*`/`DeleteV1*`).

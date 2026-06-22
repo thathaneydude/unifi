@@ -81,8 +81,9 @@ The agent loads `unifi-security-assessment`, which fans out to the four domain
 skills and writes a report to `./unifi-assessment-YYYY-MM-DD.md` in the working
 directory. The report contains:
 
-- an **executive summary** (console/version fingerprint, the skill versions that
-  produced it, finding counts by severity, and the top risks),
+- an **executive summary** (console/version fingerprint, the skill versions
+  **and the AI model + version** that produced it, finding counts by severity,
+  and the top risks),
 - **findings by severity** (critical → info) with affected resource, evidence
   (the CLI JSON that proves it, secrets redacted), and remediation guidance,
 - **coverage & limitations** (what ran, what was skipped, what the integration
@@ -112,9 +113,11 @@ just validate-skills        # from the repo root
 ## Versioning & regeneration
 
 Each skill carries a `version` in its frontmatter, and the orchestrator records
-the versions it used in the report's executive summary. When a skill's checklist
-or severity logic improves, bump its `version` (SemVer) — a prior report can then
-be regenerated and meaningfully diffed against the newer skills.
+both the skill versions **and the AI model + version** that produced the report in
+its executive summary. When a skill's checklist or severity logic improves, bump
+its `version` (SemVer); when a more capable model becomes available, re-run the
+assessment with it. Either way, a prior report can be regenerated and meaningfully
+diffed — by skill version or by model — against the same deployment.
 
 ## Scope
 

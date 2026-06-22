@@ -23,6 +23,7 @@ Every finding is an object with these fields:
 - Console: {name} ({network_version}; Protect {protect_version_or_"absent"})
 - Sites: {site_count}
 - Skill versions: orchestrator {orch_version}; {per_subskill_versions}
+- Assessed by: {ai_model_name} ({ai_model_id})  # the AI model + version that ran this assessment, e.g. Claude Opus 4.8 (claude-opus-4-8) — record so a newer model can re-evaluate and diff
 - Findings: {critical} critical, {high} high, {medium} medium, {low} low, {info} info
 - Top risks:
   1. {plain-language risk}
