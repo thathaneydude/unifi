@@ -116,7 +116,7 @@ export UNIFI_HOST=192.168.1.1        # or UNIFI_CONSOLE_ID for remote
 
 unifi protect list-operations             # discover the surface
 unifi protect GetV1Cameras                # call an operation → JSON
-unifi network GetInfo --format human      # human-readable view
+unifi network getInfo --format human      # human-readable view
 ```
 
 The CLI also auto-loads a `.env` file from the working directory if present (use `--env-file <path>`
@@ -128,11 +128,32 @@ is **flags > environment > `.env`**:
 UNIFI_API_KEY=your-api-key
 UNIFI_HOST=192.168.1.1
 
-unifi network GetInfo            # picks up .env automatically
-unifi network GetInfo --env-file ./prod.env
+unifi network getInfo            # picks up .env automatically
+unifi network getInfo --env-file ./prod.env
 ```
 
 Realtime Protect subscriptions are intentionally **SDK-only** (see below), not exposed by the CLI.
+
+## Security assessment skills
+
+The [`skills/`](skills/) directory ships read-only [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills)
+that drive the CLI to audit a UniFi deployment and produce a severity-ranked
+findings report. The `unifi-security-assessment` orchestrator runs four focused
+domain skills (`unifi-network-security`, `unifi-segmentation-wifi`,
+`unifi-asset-inventory`, `unifi-protect-security`) as parallel subagents. They
+never mutate configuration — only read-only operations are used, enforced by
+`just validate-skills`.
+
+See [`skills/README.md`](skills/README.md) for installation and usage. In short:
+
+```sh
+# Install with the skills CLI (https://github.com/vercel-labs/skills)
+npx skills add thathaneydude/unifi -g -a claude-code
+
+# Then, with the unifi CLI on PATH and credentials set, ask your agent:
+#   "Run a UniFi security assessment of my deployment."
+# → writes ./unifi-assessment-YYYY-MM-DD.md
+```
 
 ## Documentation
 
