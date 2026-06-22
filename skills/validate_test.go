@@ -19,6 +19,7 @@ var semverRE = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
 var subSkills = []string{
 	"unifi-network-security",
 	"unifi-segmentation-wifi",
+	"unifi-asset-inventory",
 }
 
 func parseFrontmatter(t *testing.T, path string) map[string]string {
