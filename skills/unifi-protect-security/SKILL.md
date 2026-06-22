@@ -6,9 +6,9 @@ version: 0.1.0
 
 # UniFi Protect Security Audit
 
-This skill is strictly read-only. Use only `Get*` operations, `list-operations`,
-and `schema`. Never call `Patch*`/`Post*`/`Put*`/`Delete*`. Report fixes in
-prose; never apply them.
+This skill is strictly read-only. Use only `GetV1*` operations, `list-operations`,
+and `schema`. Never call any mutating operation (`PostV1*`/`PutV1*`/`PatchV1*`/`DeleteV1*`).
+Report fixes in prose; never apply them.
 
 ## Procedure
 

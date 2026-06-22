@@ -15,6 +15,8 @@ const (
 
 var semverRE = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
 
+var mutatingRE = regexp.MustCompile(`\b(create|update|patch|delete|adopt|remove|execute)[A-Z][A-Za-z0-9]*|\b(Post|Put|Patch|Delete)V1[A-Z][A-Za-z0-9]*`)
+
 // subSkills is grown by later tasks as each domain skill is added.
 var subSkills = []string{
 	"unifi-network-security",
@@ -34,7 +36,7 @@ func parseFrontmatter(t *testing.T, path string) map[string]string {
 		t.Fatalf("%s: missing opening frontmatter delimiter", path)
 	}
 	rest := text[len("---\n"):]
-	end := strings.Index(rest, "\n---")
+	end := strings.Index(rest, "\n---\n")
 	if end < 0 {
 		t.Fatalf("%s: missing closing frontmatter delimiter", path)
 	}
@@ -119,6 +121,18 @@ func TestAllSkillsPresent(t *testing.T) {
 	for _, dir := range append([]string{orchestrator}, subSkills...) {
 		if _, err := os.Stat(filepath.Join(dir, "SKILL.md")); err != nil {
 			t.Errorf("missing skill %s: %v", dir, err)
+		}
+	}
+}
+
+func TestNoMutatingOps(t *testing.T) {
+	for _, dir := range append([]string{orchestrator}, subSkills...) {
+		data, err := os.ReadFile(filepath.Join(dir, "SKILL.md"))
+		if err != nil {
+			t.Fatalf("read %s/SKILL.md: %v", dir, err)
+		}
+		if m := mutatingRE.FindString(string(data)); m != "" {
+			t.Errorf("%s/SKILL.md references concrete mutating operation %q; skills must be read-only", dir, m)
 		}
 	}
 }

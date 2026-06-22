@@ -6,9 +6,10 @@ version: 0.1.0
 
 # UniFi Asset & Client Inventory
 
-This skill is strictly read-only. Use only `Get*` operations, `list-operations`,
-and `schema`. Never call `Patch*`/`Post*`/`Put*`/`Delete*`. Report fixes in
-prose; never apply them.
+This skill is strictly read-only. Use only `get*` operations, `list-operations`,
+and `schema`. Never call any mutating operation (for UniFi Network these use
+verbs like `create*`/`update*`/`patch*`/`delete*`/`adopt*`/`remove*`/`execute*`).
+Report fixes in prose; never apply them.
 
 ## Procedure
 
@@ -17,11 +18,11 @@ Run `unifi network list-operations` and consult `unifi network schema`. Absent
 operations become "could not assess" notes.
 
 ### Collect (read-only)
-- Devices: `GetAdoptedDeviceOverviewPage`, `GetAdoptedDeviceDetails`,
-  `GetAdoptedDeviceLatestStatistics`, `GetPendingDevicePage`.
-- Clients: `GetConnectedClientOverviewPage`, `GetConnectedClientDetails`.
-- Guests: `GetVouchers`, `GetVoucher`.
-- Context: `GetSiteOverviewPage`, `GetInfo`.
+- Devices: `getAdoptedDeviceOverviewPage`, `getAdoptedDeviceDetails`,
+  `getAdoptedDeviceLatestStatistics`, `getPendingDevicePage`.
+- Clients: `getConnectedClientOverviewPage`, `getConnectedClientDetails`.
+- Guests: `getVouchers`, `getVoucher`.
+- Context: `getSiteOverviewPage`, `getInfo`.
 
 ### Analyze (checklist)
 - Adopted devices: outdated firmware (reported vs latest); update-available
