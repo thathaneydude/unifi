@@ -116,7 +116,7 @@ export UNIFI_HOST=192.168.1.1        # or UNIFI_CONSOLE_ID for remote
 
 unifi protect list-operations             # discover the surface
 unifi protect GetV1Cameras                # call an operation → JSON
-unifi network GetInfo --format human      # human-readable view
+unifi network getInfo --format human      # human-readable view
 ```
 
 The CLI also auto-loads a `.env` file from the working directory if present (use `--env-file <path>`
@@ -128,8 +128,8 @@ is **flags > environment > `.env`**:
 UNIFI_API_KEY=your-api-key
 UNIFI_HOST=192.168.1.1
 
-unifi network GetInfo            # picks up .env automatically
-unifi network GetInfo --env-file ./prod.env
+unifi network getInfo            # picks up .env automatically
+unifi network getInfo --env-file ./prod.env
 ```
 
 Realtime Protect subscriptions are intentionally **SDK-only** (see below), not exposed by the CLI.
