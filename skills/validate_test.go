@@ -20,6 +20,7 @@ var subSkills = []string{
 	"unifi-network-security",
 	"unifi-segmentation-wifi",
 	"unifi-asset-inventory",
+	"unifi-protect-security",
 }
 
 func parseFrontmatter(t *testing.T, path string) map[string]string {
