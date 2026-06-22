@@ -16,7 +16,9 @@ const (
 var semverRE = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
 
 // subSkills is grown by later tasks as each domain skill is added.
-var subSkills = []string{}
+var subSkills = []string{
+	"unifi-network-security",
+}
 
 func parseFrontmatter(t *testing.T, path string) map[string]string {
 	t.Helper()
