@@ -111,3 +111,14 @@ func TestSubSkills(t *testing.T) {
 		})
 	}
 }
+
+func TestAllSkillsPresent(t *testing.T) {
+	if len(subSkills) != 4 {
+		t.Fatalf("expected 4 domain sub-skills, got %d: %v", len(subSkills), subSkills)
+	}
+	for _, dir := range append([]string{orchestrator}, subSkills...) {
+		if _, err := os.Stat(filepath.Join(dir, "SKILL.md")); err != nil {
+			t.Errorf("missing skill %s: %v", dir, err)
+		}
+	}
+}

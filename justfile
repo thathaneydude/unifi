@@ -71,6 +71,10 @@ lint:
 test:
     go run github.com/onsi/ginkgo/v2/ginkgo -r --race --skip-package e2e
 
+# Validate the security-assessment Agent Skills (structure + read-only invariant).
+validate-skills:
+    go test ./skills/...
+
 # Run the end-to-end suite (mock servers; real console when creds are set).
 test-e2e:
     go run github.com/onsi/ginkgo/v2/ginkgo --tags e2e ./e2e/...

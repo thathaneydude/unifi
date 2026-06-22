@@ -134,6 +134,15 @@ unifi network GetInfo --env-file ./prod.env
 
 Realtime Protect subscriptions are intentionally **SDK-only** (see below), not exposed by the CLI.
 
+## Security assessment skills
+
+The `skills/` directory ships read-only Agent Skills that drive the CLI to audit
+a UniFi deployment and produce a severity-ranked findings report. The
+`unifi-security-assessment` orchestrator runs four focused domain skills
+(`unifi-network-security`, `unifi-segmentation-wifi`, `unifi-asset-inventory`,
+`unifi-protect-security`) as parallel subagents. They never mutate
+configuration. Validate their structure with `just validate-skills`.
+
 ## Documentation
 
 Full documentation is published at <https://thathaneydude.github.io/unifi/>, including:
