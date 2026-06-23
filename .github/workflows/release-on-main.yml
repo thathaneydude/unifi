@@ -1,0 +1,117 @@
+name: release-on-main
+
+# Auto-release on every push to main. git-cliff computes the next SemVer from the
+# Conventional Commit history (enforced by CI), this job tags HEAD, and goreleaser
+# cuts the GitHub release in the same job.
+#
+# Why goreleaser runs here instead of via release.yml: a tag pushed with the default
+# GITHUB_TOKEN does NOT trigger other workflows (GitHub's recursive-run guard), so we
+# cannot rely on the tag push to fire release.yml. We tag and release in one job.
+# release.yml remains for manual/hotfix tags pushed by a human (those DO trigger it);
+# the two paths are mutually exclusive, so there is no double-release.
+
+on:
+  push:
+    branches:
+      - main
+
+# Serialize runs so rapid merges don't race on tag creation.
+concurrency:
+  group: release-on-main
+  cancel-in-progress: false
+
+# Least privilege by default; only this job is granted the write access needed to
+# push the tag and publish the release.
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Owner-only, matching ci.yml. The repo is private with the owner as the sole
+    # collaborator; this keeps releases owner-only even if that changes.
+    if: ${{ github.actor == github.repository_owner }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+
+      # Compute the next version from conventional commits since the last tag.
+      # OUTPUT is directed to a temp file so the tracked CHANGELOG.md is never
+      # touched (a dirty tree would fail goreleaser below).
+      - name: Compute next version (git-cliff)
+        id: bump
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --bumped-version
+        env:
+          OUTPUT: ${{ runner.temp }}/bumped-version.txt
+
+      # Decide whether there is anything to release. git-cliff returns the latest
+      # existing version unchanged when only skipped commits (e.g. chore:) landed.
+      - name: Decide whether to release
+        id: decide
+        run: |
+          next="$(printf '%s' '${{ steps.bump.outputs.content }}' | tr -d '[:space:]')"
+          latest="$(git describe --tags --abbrev=0 2>/dev/null || echo '')"
+          echo "Computed next version: ${next:-<empty>}"
+          echo "Latest existing tag:   ${latest:-<none>}"
+          if [ -z "${next}" ]; then
+            echo "::error::git-cliff produced an empty version"
+            exit 1
+          fi
+          if [ "${next}" = "${latest}" ]; then
+            echo "No releasable commits since ${latest}; skipping release."
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "released=true" >> "$GITHUB_OUTPUT"
+            echo "version=${next}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Defense in depth: same strict SemVer guard as release.yml, applied to the
+      # computed version before we tag anything.
+      - name: Enforce SemVer tag
+        if: ${{ steps.decide.outputs.released == 'true' }}
+        run: |
+          tag="${{ steps.decide.outputs.version }}"
+          echo "Validating computed tag: ${tag}"
+          if ! echo "${tag}" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'; then
+            echo "::error::Computed tag ${tag} is not valid SemVer. Expected vX.Y.Z[-prerelease][+build]."
+            exit 1
+          fi
+
+      - name: Create and push tag
+        if: ${{ steps.decide.outputs.released == 'true' }}
+        run: |
+          version="${{ steps.decide.outputs.version }}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "${version}" -m "${version}"
+          git push origin "${version}"
+
+      - name: Generate release notes (git-cliff)
+        if: ${{ steps.decide.outputs.released == 'true' }}
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: RELEASE_NOTES.md
+
+      - name: Run goreleaser
+        if: ${{ steps.decide.outputs.released == 'true' }}
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean --release-notes RELEASE_NOTES.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
