@@ -108,6 +108,12 @@ func newOperationCommand(op Operation, d *runDeps) *cobra.Command {
 			flagName = "query-" + p.Name
 		}
 		sub.Flags().StringVar(dst, flagName, "", "query: "+p.Description)
+		if p.Required {
+			// Cannot fail: the flag was just registered above. Mirrors the path
+			// branch so required query params (e.g. firewall-policy ordering zone
+			// ids) are enforced up front instead of failing at the API.
+			_ = sub.MarkFlagRequired(flagName)
+		}
 		queryBindings = append(queryBindings, paramBinding{name: p.Name, flag: flagName, dst: dst})
 	}
 	if op.HasBody() {
