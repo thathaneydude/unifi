@@ -186,6 +186,20 @@
   }
   .remediation { margin: 6px 0 0; }
 
+  /* Collapsible evidence disclosure */
+  .evidence-details { margin-top: 14px; }
+  .evidence-details > summary {
+    cursor: pointer; list-style: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .evidence-details > summary::-webkit-details-marker { display: none; }
+  .evidence-details > summary::before { content: "▸"; color: var(--muted); font-size: 11px; }
+  .evidence-details[open] > summary::before { content: "▾"; }
+  .evidence-details > summary .label { margin: 0; transition: color .15s ease; }
+  .evidence-details > summary:hover .label { color: var(--accent); }
+  .evidence-details > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+  .evidence-details > .evidence { margin-top: 8px; }
+
   /* Humanized evidence table */
   .evidence {
     background: var(--code-bg); border: 1px solid var(--border);
@@ -237,7 +251,10 @@
     body { background: #fff; }
     .toggle { display: none; }
     .card, .finding, pre { box-shadow: none; }
-    details.appx { break-inside: avoid; }
+    /* Expand collapsed evidence/appendix so printed reports are complete. */
+    details > summary::before { display: none; }
+    details > *:not(summary) { display: block !important; }
+    details.appx, .evidence-details { break-inside: avoid; }
   }
 </style>
 </head>
@@ -312,8 +329,10 @@
         <div class="resource"><code>{{ .AffectedResource }}</code></div>
         {{- end }}
         {{- if .Evidence }}
-        <div class="label">Evidence</div>
-        <div class="evidence">{{ evidenceHTML .Evidence }}</div>
+        <details class="evidence-details">
+          <summary><span class="label">Evidence</span></summary>
+          <div class="evidence">{{ evidenceHTML .Evidence }}</div>
+        </details>
         {{- end }}
         {{- if .Remediation }}
         <div class="label">Remediation</div>

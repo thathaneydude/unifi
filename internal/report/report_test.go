@@ -109,6 +109,13 @@ func TestRenderEvidenceAsHumanizedTable(t *testing.T) {
 	if strings.Contains(html, `"allowReturnTraffic": true`) {
 		t.Error("evidence still rendered as raw JSON")
 	}
+	// Evidence is a collapsible disclosure, collapsed by default.
+	if !strings.Contains(html, `<details class="evidence-details">`) {
+		t.Error("evidence is not wrapped in a <details> disclosure")
+	}
+	if strings.Contains(html, `<details class="evidence-details" open`) {
+		t.Error("evidence disclosure should be collapsed (no open attribute) by default")
+	}
 }
 
 func TestRenderUsesActionLabels(t *testing.T) {
