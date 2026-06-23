@@ -198,12 +198,11 @@ func newConsolesCommand(
 			if err != nil {
 				return err
 			}
+			// console and consoleView share identical fields; the view only adds
+			// the JSON tags for the emitted shape, so a direct conversion suffices.
 			views := make([]consoleView, 0, len(consoles))
 			for _, cc := range consoles {
-				views = append(views, consoleView{
-					ID: cc.ID, Name: cc.Name, Model: cc.Model,
-					Shortname: cc.Shortname, IP: cc.IP, Owner: cc.Owner,
-				})
+				views = append(views, consoleView(cc))
 			}
 			body, err := json.Marshal(views)
 			if err != nil {
