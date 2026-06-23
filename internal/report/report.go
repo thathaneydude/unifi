@@ -102,15 +102,45 @@ type severityGroup struct {
 	Findings []Finding
 }
 
+// actionLabels map canonical severity keys to action-oriented display labels
+// that speak to a UniFi administrator ("what should I do?" rather than a bare
+// severity word). The JSON keys and severity-rubric.md stay
+// critical/high/medium/low/info; only the rendered text changes, and the color
+// ramp (red→gray) still conveys urgency.
+var actionLabels = map[string]string{
+	"critical": "Act Now",
+	"high":     "Address Soon",
+	"medium":   "Recommended",
+	"low":      "Optional",
+	"info":     "Informational",
+}
+
+// displayLabel returns the action-oriented label for a severity key, falling
+// back to Title Case for unknown keys.
+func displayLabel(sev string) string {
+	if l, ok := actionLabels[strings.ToLower(sev)]; ok {
+		return l
+	}
+	if sev == "" {
+		return ""
+	}
+	return strings.ToUpper(sev[:1]) + sev[1:]
+}
+
+// canonicalSeverity returns the standard infosec label (Critical/High/…), used
+// as a badge tooltip so technical readers retain the conventional mapping.
+func canonicalSeverity(sev string) string {
+	if sev == "" {
+		return ""
+	}
+	return strings.ToUpper(sev[:1]) + sev[1:]
+}
+
 var tmpl = template.Must(template.New("template.html").Funcs(template.FuncMap{
-	"prettyJSON":   prettyJSON,
-	"evidenceHTML": evidenceHTML,
-	"severityLabel": func(s string) string {
-		if s == "" {
-			return ""
-		}
-		return strings.ToUpper(s[:1]) + s[1:]
-	},
+	"prettyJSON":        prettyJSON,
+	"evidenceHTML":      evidenceHTML,
+	"severityLabel":     displayLabel,
+	"canonicalSeverity": canonicalSeverity,
 }).ParseFS(templateFS, "template.html"))
 
 // Render writes the self-contained HTML report for r to w. All user- and
@@ -127,7 +157,7 @@ func Render(w io.Writer, r Report) error {
 		}
 		groups = append(groups, severityGroup{
 			Severity: sev,
-			Label:    strings.ToUpper(sev[:1]) + sev[1:],
+			Label:    displayLabel(sev),
 			Count:    len(fs),
 			Findings: fs,
 		})

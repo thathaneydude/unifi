@@ -111,6 +111,26 @@ func TestRenderEvidenceAsHumanizedTable(t *testing.T) {
 	}
 }
 
+func TestRenderUsesActionLabels(t *testing.T) {
+	html := renderSample(t)
+	// Action-oriented labels replace the bare severity words in the UI...
+	for _, want := range []string{"Act Now", "Address Soon", "Recommended", "Optional", "Informational"} {
+		if !strings.Contains(html, want) {
+			t.Errorf("missing action label %q", want)
+		}
+	}
+	// ...while the canonical severity is preserved as a badge tooltip.
+	if !strings.Contains(html, `title="Critical severity"`) {
+		t.Error("badge missing canonical severity tooltip")
+	}
+	if got := displayLabel("critical"); got != "Act Now" {
+		t.Errorf("displayLabel(critical) = %q, want Act Now", got)
+	}
+	if got := displayLabel("unknown"); got != "Unknown" {
+		t.Errorf("displayLabel fallback = %q, want Unknown", got)
+	}
+}
+
 func TestHumanizeKey(t *testing.T) {
 	cases := map[string]string{
 		"allowReturnTraffic": "Allow Return Traffic",

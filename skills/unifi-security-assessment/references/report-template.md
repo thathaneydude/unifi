@@ -10,7 +10,10 @@ pretty-prints evidence, and HTML-escapes all text (no markdown parsing).
 Every finding is an object with these fields:
 
 - `severity` — one of `critical | high | medium | low | info` (see
-  severity-rubric.md).
+  severity-rubric.md). These keys are the stable data contract; the HTML report
+  renders them as action-oriented labels for UniFi admins — `critical`→"Act Now",
+  `high`→"Address Soon", `medium`→"Recommended", `low`→"Optional",
+  `info`→"Informational" — with the canonical severity shown as a badge tooltip.
 - `title` — short description of the issue.
 - `affected_resource` — the specific network / SSID / device / rule / camera.
 - `evidence` — the CLI JSON snippet that proves the finding (an object/array),

@@ -305,7 +305,7 @@
       {{- range .Findings }}
       <div class="card finding {{ .Severity }}">
         <div class="ftop">
-          <span class="badge {{ .Severity }}">{{ severityLabel .Severity }}</span>
+          <span class="badge {{ .Severity }}" title="{{ canonicalSeverity .Severity }} severity">{{ severityLabel .Severity }}</span>
           <h4>{{ .Title }}</h4>
         </div>
         {{- if .AffectedResource }}
