@@ -186,19 +186,31 @@
   }
   .remediation { margin: 6px 0 0; }
 
-  /* Collapsible evidence disclosure */
+  /* Collapsible evidence disclosure — styled as an obvious toggle button */
   .evidence-details { margin-top: 14px; }
   .evidence-details > summary {
-    cursor: pointer; list-style: none;
-    display: inline-flex; align-items: center; gap: 6px;
+    cursor: pointer; list-style: none; user-select: none; width: fit-content;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 12px 5px 11px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: var(--card-2);
+    transition: border-color .15s ease, background-color .15s ease, color .15s ease;
   }
+  .evidence-details > summary:hover { border-color: var(--accent); background: var(--card); }
   .evidence-details > summary::-webkit-details-marker { display: none; }
-  .evidence-details > summary::before { content: "▸"; color: var(--muted); font-size: 11px; }
+  .evidence-details > summary::before { content: "▸"; color: var(--accent); font-size: 11px; }
   .evidence-details[open] > summary::before { content: "▾"; }
   .evidence-details > summary .label { margin: 0; transition: color .15s ease; }
-  .evidence-details > summary:hover .label { color: var(--accent); }
-  .evidence-details > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
-  .evidence-details > .evidence { margin-top: 8px; }
+  /* Explicit Show/Hide affordance that flips on expand. */
+  .evidence-details > summary::after {
+    content: "Show"; color: var(--muted);
+    font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .evidence-details[open] > summary::after { content: "Hide"; }
+  .evidence-details > summary:hover .label,
+  .evidence-details > summary:hover::after { color: var(--accent); }
+  .evidence-details > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .evidence-details > .evidence { margin-top: 10px; }
 
   /* Humanized evidence table */
   .evidence {
@@ -252,7 +264,8 @@
     .toggle { display: none; }
     .card, .finding, pre { box-shadow: none; }
     /* Expand collapsed evidence/appendix so printed reports are complete. */
-    details > summary::before { display: none; }
+    details > summary::before, .evidence-details > summary::after { display: none; }
+    .evidence-details > summary { border: 0; background: none; padding: 0; }
     details > *:not(summary) { display: block !important; }
     details.appx, .evidence-details { break-inside: avoid; }
   }
