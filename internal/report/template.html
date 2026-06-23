@@ -38,7 +38,9 @@
     --muted: #97A1B0;
     --accent: var(--unifi-blue);
     --code-bg: #0B0E13;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .25);
+    /* Shadows tinted to the navy background hue, soft wide diffusion. */
+    --shadow: 0 1px 2px rgba(6, 10, 20, .5), 0 18px 40px -16px rgba(4, 8, 18, .6);
+    --focus: var(--unifi-blue);
   }
   html[data-theme="light"] {
     --bg: #F5F7FA;
@@ -50,7 +52,8 @@
     --muted: #5A6573;
     --accent: var(--unifi-blue-deep);
     --code-bg: #F2F4F8;
-    --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 8px 24px rgba(16, 24, 40, .08);
+    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 20px 40px -18px rgba(16, 24, 40, .12);
+    --focus: var(--unifi-blue-deep);
   }
 
   * { box-sizing: border-box; }
@@ -62,25 +65,36 @@
     line-height: 1.55;
     font-size: 15px;
     -webkit-font-smoothing: antialiased;
+    transition: background-color .25s ease, color .25s ease;
   }
   .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px 96px; }
+  /* Theme-aware surfaces ease between dark/light on toggle. */
+  .card, .chip, .evidence, pre, .resource code, .toggle {
+    transition: background-color .25s ease, border-color .25s ease, color .25s ease;
+  }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
 
   /* Header */
   header.report {
     background: linear-gradient(135deg, var(--unifi-blue-deep), var(--unifi-blue));
     color: #fff;
     border-radius: 0 0 16px 16px;
-    box-shadow: var(--shadow);
+    /* Edge refinement: soft drop + a 1px inner top highlight. */
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .16);
   }
   header.report .wrap { padding-top: 28px; padding-bottom: 28px; }
   .brandrow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .brand { display: flex; align-items: center; gap: 12px; }
   .logo {
-    width: 34px; height: 34px; border-radius: 8px; flex: none;
-    background: rgba(255, 255, 255, .15);
+    width: 36px; height: 36px; border-radius: 9px; flex: none;
+    background: rgba(255, 255, 255, .14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
     display: grid; place-items: center;
-    font-weight: 700; letter-spacing: .5px; font-size: 13px;
   }
+  .logo svg { width: 20px; height: 20px; display: block; }
   header.report h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.2px; }
   header.report .sub { margin-top: 4px; opacity: .9; font-size: 13.5px; }
   .toggle {
@@ -88,8 +102,11 @@
     background: rgba(255, 255, 255, .12); color: #fff;
     border-radius: 999px; padding: 7px 14px; font-size: 13px; cursor: pointer;
     display: inline-flex; align-items: center; gap: 7px; flex: none;
+    transition: background-color .2s ease, transform .05s ease;
   }
   .toggle:hover { background: rgba(255, 255, 255, .22); }
+  .toggle:active { transform: translateY(1px); }
+  .toggle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
   /* Sections */
   section { margin-top: 32px; }
@@ -184,7 +201,7 @@
   .kv-val {
     color: var(--text); word-break: break-word;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 12.5px;
+    font-size: 12.5px; font-variant-numeric: tabular-nums;
   }
   .kv-group { padding: 6px 0; border-bottom: 1px solid var(--border); }
   .kv > .kv-group:last-child { border-bottom: 0; }
@@ -205,7 +222,10 @@
     cursor: pointer; padding: 12px 16px; list-style: none;
     font-weight: 600; font-size: 14px;
     display: flex; align-items: center; gap: 8px;
+    transition: color .15s ease;
   }
+  details.appx > summary:hover { color: var(--accent); }
+  details.appx > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
   details.appx > summary::-webkit-details-marker { display: none; }
   details.appx > summary::before { content: "▸"; color: var(--muted); }
   details.appx[open] > summary::before { content: "▾"; }
@@ -226,7 +246,12 @@
   <div class="wrap">
     <div class="brandrow">
       <div class="brand">
-        <div class="logo">Ui</div>
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.5 4.5 5.5v5.2c0 4.6 3.1 7.9 7.5 9.3 4.4-1.4 7.5-4.7 7.5-9.3V5.5L12 2.5Z"/>
+            <path d="m8.8 11.8 2.2 2.2 4.2-4.4"/>
+          </svg>
+        </div>
         <div>
           <h1>UniFi Security Assessment</h1>
           <div class="sub">{{ .Console.Name }} · {{ .Date }}</div>

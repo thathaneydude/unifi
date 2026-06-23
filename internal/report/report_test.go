@@ -96,7 +96,7 @@ func TestRenderEvidenceAsHumanizedTable(t *testing.T) {
 	wants := []string{
 		`class="evidence"`,        // evidence is a table, not a <pre> JSON dump
 		"Allow Return Traffic",    // humanized key for allowReturnTraffic
-		"Zone Id",                 // humanized key for zoneId
+		"Zone ID",                 // humanized key for zoneId (acronym-aware)
 		`<div class="kv-val">Yes`, // boolean true -> Yes
 		`<div class="kv-val">—`,   // null -> em dash
 	}
@@ -114,10 +114,14 @@ func TestRenderEvidenceAsHumanizedTable(t *testing.T) {
 func TestHumanizeKey(t *testing.T) {
 	cases := map[string]string{
 		"allowReturnTraffic": "Allow Return Traffic",
-		"zoneId":             "Zone Id",
+		"zoneId":             "Zone ID",
 		"network_version":    "Network Version",
-		"id":                 "Id",
+		"id":                 "ID",
 		"type":               "Type",
+		"ssid":               "SSID",
+		"vlan":               "VLAN",
+		"iotClients":         "IoT Clients",
+		"l2Isolation":        "L2 Isolation",
 	}
 	for in, want := range cases {
 		if got := humanizeKey(in); got != want {

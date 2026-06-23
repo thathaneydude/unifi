@@ -345,8 +345,22 @@ func scalarHTML(v any) string {
 	}
 }
 
-// humanizeKey turns an API field name into a Title Case label, e.g.
-// "allowReturnTraffic" -> "Allow Return Traffic", "zone_id" -> "Zone Id".
+// acronyms maps a lowercased word to its canonical casing so network/security
+// field labels read correctly (e.g. "ssid" -> "SSID") instead of "Ssid".
+var acronyms = map[string]string{
+	"id": "ID", "ip": "IP", "mac": "MAC", "ssid": "SSID", "vlan": "VLAN",
+	"vlans": "VLANs", "lan": "LAN", "wan": "WAN", "wlan": "WLAN", "dns": "DNS",
+	"dhcp": "DHCP", "vpn": "VPN", "pmf": "PMF", "nvr": "NVR", "rtsp": "RTSP",
+	"rtsps": "RTSPS", "acl": "ACL", "url": "URL", "uri": "URI", "api": "API",
+	"ui": "UI", "cpu": "CPU", "mtu": "MTU", "nat": "NAT", "ntp": "NTP",
+	"tcp": "TCP", "udp": "UDP", "http": "HTTP", "https": "HTTPS", "ssh": "SSH",
+	"tls": "TLS", "ssl": "SSL", "poe": "PoE", "sfp": "SFP", "ap": "AP",
+	"aps": "APs", "qos": "QoS", "iot": "IoT", "wifi": "Wi-Fi", "radius": "RADIUS",
+}
+
+// humanizeKey turns an API field name into a Title Case label, expanding known
+// acronyms, e.g. "allowReturnTraffic" -> "Allow Return Traffic",
+// "zoneId" -> "Zone ID", "ssid" -> "SSID".
 func humanizeKey(s string) string {
 	if s == "" {
 		return ""
@@ -374,6 +388,10 @@ func humanizeKey(s string) string {
 	}
 	flush()
 	for i, w := range words {
+		if canon, ok := acronyms[strings.ToLower(w)]; ok {
+			words[i] = canon
+			continue
+		}
 		rs := []rune(w)
 		rs[0] = unicode.ToUpper(rs[0])
 		for j := 1; j < len(rs); j++ {
