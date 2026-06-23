@@ -35,17 +35,24 @@ func newReportCommand(stdout io.Writer) *cobra.Command {
 				return NewUsageError(err.Error())
 			}
 
-			out := stdout
-			if outPath != "" {
-				f, ferr := os.Create(outPath)
-				if ferr != nil {
-					return NewUsageError(fmt.Sprintf("cannot write --out %q: %v", outPath, ferr))
+			if outPath == "" {
+				if err := report.Render(stdout, rep); err != nil {
+					return fmt.Errorf("rendering report: %w", err)
 				}
-				defer f.Close()
-				out = f
+				return nil
 			}
-			if err := report.Render(out, rep); err != nil {
-				return fmt.Errorf("rendering report: %w", err)
+
+			f, err := os.Create(outPath)
+			if err != nil {
+				return NewUsageError(fmt.Sprintf("cannot write --out %q: %v", outPath, err))
+			}
+			if rerr := report.Render(f, rep); rerr != nil {
+				_ = f.Close()
+				return fmt.Errorf("rendering report: %w", rerr)
+			}
+			// Check Close so a deferred-write failure (e.g. disk full) surfaces.
+			if cerr := f.Close(); cerr != nil {
+				return fmt.Errorf("closing %q: %w", outPath, cerr)
 			}
 			return nil
 		},
