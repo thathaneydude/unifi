@@ -35,7 +35,7 @@ appendix `data` value are raw JSON (objects or arrays), not strings.
   },
   "site_count": 1,
   "skill_versions": {
-    "orchestrator": "0.1.0",
+    "orchestrator": "0.2.0",
     "unifi-network-security": "0.1.0",
     "unifi-segmentation-wifi": "0.1.0",
     "unifi-asset-inventory": "0.1.0",

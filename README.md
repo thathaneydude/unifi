@@ -147,6 +147,24 @@ unifi network getInfo            # picks up .env automatically
 unifi network getInfo --env-file ./prod.env
 ```
 
+### Remote consoles
+
+A cloud account can hold several consoles. Enumerate them (needs only the account-level
+`UNIFI_API_KEY` — no `--console-id`), then target one by name, model, or id:
+
+```sh
+unifi consoles list                                   # id, name, model, ip per console
+unifi consoles list --fields name,model               # shape the listing like any result
+
+unifi --console "Home" network getInfo                # resolve a console by name → remote call
+unifi --console-id <id-from-list> network getInfo     # or pass the raw id directly
+```
+
+`--console` resolves the name/model to the console id via `consoles list` (one lookup per run);
+`--console-id` is the raw fast path. The `id` field from the listing is exactly what the remote
+connector expects. The `unifi-security-assessment` skill uses this to let you pick which
+console(s) to assess, writing one report per console.
+
 ### Ergonomics
 
 Global flags reduce the shell glue agents otherwise need:

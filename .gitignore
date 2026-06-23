@@ -24,8 +24,10 @@ profile.cov
 go.work
 go.work.sum
 
-# env file
+# env files (secrets) — .env, .env.remote/.env.local/etc, and *.env (e.g. prod.env)
 .env
+.env.*
+*.env
 
 # Editor/IDE
 .idea/
