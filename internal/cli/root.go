@@ -12,12 +12,14 @@ import (
 
 // global flags shared by all commands.
 type globalFlags struct {
-	apiKey    string
-	host      string
-	consoleID string
-	insecure  bool
-	format    string
-	envFile   string
+	apiKey        string
+	networkAPIKey string
+	protectAPIKey string
+	host          string
+	consoleID     string
+	insecure      bool
+	format        string
+	envFile       string
 }
 
 // NewRootCommand assembles the full `unifi` command tree from the embedded specs.
@@ -47,7 +49,9 @@ func NewRootCommand() (*cobra.Command, error) {
 		},
 	}
 	pf := root.PersistentFlags()
-	pf.StringVar(&gf.apiKey, "api-key", "", "API key (or UNIFI_API_KEY)")
+	pf.StringVar(&gf.apiKey, "api-key", "", "API key shared by both apps (or UNIFI_API_KEY)")
+	pf.StringVar(&gf.networkAPIKey, "network-api-key", "", "Network API key (or UNIFI_NETWORK_API_KEY); falls back to --api-key")
+	pf.StringVar(&gf.protectAPIKey, "protect-api-key", "", "Protect API key (or UNIFI_PROTECT_API_KEY); falls back to --api-key")
 	pf.StringVar(&gf.host, "host", "", "local console host (or UNIFI_HOST)")
 	pf.StringVar(&gf.consoleID, "console-id", "", "remote console id (or UNIFI_CONSOLE_ID)")
 	pf.BoolVar(&gf.insecure, "insecure", false, "skip TLS verification (or UNIFI_INSECURE)")
@@ -55,7 +59,7 @@ func NewRootCommand() (*cobra.Command, error) {
 	pf.StringVar(&gf.envFile, "env-file", "", "path to a .env file (default ./.env if present)")
 
 	deps := runDeps{
-		connFn: func() (*unifi.Conn, error) { return resolveFromFlags(gf) },
+		connFn: func(app unifi.App) (*unifi.Conn, error) { return resolveFromFlags(gf, app) },
 		format: func() Format { return formatFromFlags(gf) },
 		stdout: os.Stdout,
 	}
@@ -77,7 +81,7 @@ func NewRootCommand() (*cobra.Command, error) {
 	return root, nil
 }
 
-func resolveFromFlags(gf *globalFlags) (*unifi.Conn, error) {
+func resolveFromFlags(gf *globalFlags, app unifi.App) (*unifi.Conn, error) {
 	envPath, required := ".env", false
 	if gf.envFile != "" {
 		envPath, required = gf.envFile, true
@@ -89,6 +93,12 @@ func resolveFromFlags(gf *globalFlags) (*unifi.Conn, error) {
 	if gf.apiKey != "" {
 		cfg.APIKey = gf.apiKey
 	}
+	if gf.networkAPIKey != "" {
+		cfg.NetworkAPIKey = gf.networkAPIKey
+	}
+	if gf.protectAPIKey != "" {
+		cfg.ProtectAPIKey = gf.protectAPIKey
+	}
 	if gf.host != "" {
 		cfg.Host = gf.host
 	}
@@ -98,7 +108,7 @@ func resolveFromFlags(gf *globalFlags) (*unifi.Conn, error) {
 	if gf.insecure {
 		cfg.Insecure = true
 	}
-	return ResolveConn(cfg)
+	return ResolveConn(cfg, app)
 }
 
 // parseFormat validates and maps the --format value. An empty value defaults to

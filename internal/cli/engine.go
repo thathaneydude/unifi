@@ -14,9 +14,9 @@ import (
 // runDeps carries everything an operation's RunE needs, resolved lazily so the
 // command tree can be built without credentials present.
 type runDeps struct {
-	connFn func() (*unifi.Conn, error) // resolves config -> Conn at run time
-	format func() Format               // global output format
-	stdout io.Writer                   // results go here; errors are rendered in RunRoot
+	connFn func(unifi.App) (*unifi.Conn, error) // resolves config -> Conn for an app at run time
+	format func() Format                        // global output format
+	stdout io.Writer                            // results go here; errors are rendered in RunRoot
 }
 
 // NewAppCommand builds `unifi <app>` with one subcommand per operation. deps may
@@ -138,7 +138,7 @@ func runOperation(
 		return NewUsageError(fmt.Sprintf("%s is a %s operation; pass --confirm to execute (or --dry-run to preview)", op.ID, op.Method))
 	}
 
-	conn, err := d.connFn()
+	conn, err := d.connFn(op.App)
 	if err != nil {
 		return err
 	}

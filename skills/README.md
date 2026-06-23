@@ -35,9 +35,19 @@ finding shape).
    export UNIFI_HOST=192.168.1.1     # local console; or UNIFI_CONSOLE_ID for remote
    ```
 
+   A combined assessment touches both Network and Protect, which mint **separate**
+   local API keys. Set both so each domain skill authenticates without swapping:
+
+   ```sh
+   export UNIFI_NETWORK_API_KEY=your-network-key
+   export UNIFI_PROTECT_API_KEY=your-protect-key
+   ```
+
+   Each app falls back to `UNIFI_API_KEY` when its app-specific key is unset.
    The skills never read, print, or persist credentials themselves — they only
-   shell out to `unifi`, which handles auth. Run `unifi network getInfo` once to
-   confirm the CLI reaches your console before assessing.
+   shell out to `unifi`, which handles auth. Run `unifi network getInfo` and
+   `unifi protect list-operations` once to confirm the CLI reaches both apps
+   before assessing.
 
 ## Install
 

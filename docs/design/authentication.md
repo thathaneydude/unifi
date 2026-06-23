@@ -13,14 +13,29 @@ tags:
 
 ## API key
 
-Both UniFi Network and UniFi Protect integration APIs authenticate with a single header:
+Both UniFi Network and UniFi Protect integration APIs authenticate with the same header:
 
 ```
 X-API-KEY: <key>
 ```
 
-The key is created in each application's **Integrations** section (UniFi OS). A local key and a
-remote/Site-Manager key may differ, but both are sent in the same header.
+The key is created in each application's **Integrations** section (UniFi OS), and **Network and
+Protect mint separate keys** — a Network key does not authenticate Protect, and vice versa. Over
+the local transport you therefore need each app's own key; over the remote transport a single
+account-level Site-Manager key reaches both apps through the connector.
+
+### Per-app keys in the CLI
+
+Because the keys differ, the CLI resolves a key **per app**, with this precedence (highest first):
+
+1. App-specific flag — `--network-api-key` / `--protect-api-key`
+2. App-specific env — `UNIFI_NETWORK_API_KEY` / `UNIFI_PROTECT_API_KEY`
+3. Shared flag — `--api-key`
+4. Shared env — `UNIFI_API_KEY`
+
+Setting both `UNIFI_NETWORK_API_KEY` and `UNIFI_PROTECT_API_KEY` (e.g. in one `.env`) lets a single
+configuration drive `unifi network …` and `unifi protect …` without swapping keys. Supplying only
+the shared `UNIFI_API_KEY` keeps the original single-key behaviour for whichever app you target.
 
 ## Two transports
 

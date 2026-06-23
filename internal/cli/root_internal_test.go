@@ -15,7 +15,7 @@ var _ = Describe("resolveFromFlags", func() {
 		GinkgoT().Setenv("UNIFI_HOST", "env-host")
 		GinkgoT().Setenv("UNIFI_CONSOLE_ID", "")
 
-		conn, err := resolveFromFlags(&globalFlags{apiKey: "flag-key", host: "flag-host"})
+		conn, err := resolveFromFlags(&globalFlags{apiKey: "flag-key", host: "flag-host"}, unifi.AppNetwork)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(conn.BaseURL(unifi.AppNetwork)).To(ContainSubstring("flag-host"))
 	})
@@ -25,9 +25,43 @@ var _ = Describe("resolveFromFlags", func() {
 		GinkgoT().Setenv("UNIFI_HOST", "")
 		GinkgoT().Setenv("UNIFI_CONSOLE_ID", "env-console")
 
-		conn, err := resolveFromFlags(&globalFlags{})
+		conn, err := resolveFromFlags(&globalFlags{}, unifi.AppProtect)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(conn.BaseURL(unifi.AppProtect)).To(ContainSubstring("env-console"))
+	})
+})
+
+var _ = Describe("Config.keyForApp", func() {
+	It("prefers the app-specific key over the shared key", func() {
+		cfg := Config{APIKey: "shared", NetworkAPIKey: "net", ProtectAPIKey: "protect"}
+		Expect(cfg.keyForApp(unifi.AppNetwork)).To(Equal("net"))
+		Expect(cfg.keyForApp(unifi.AppProtect)).To(Equal("protect"))
+	})
+
+	It("falls back to the shared key when the app-specific key is unset", func() {
+		cfg := Config{APIKey: "shared", NetworkAPIKey: "net"}
+		Expect(cfg.keyForApp(unifi.AppNetwork)).To(Equal("net"))
+		Expect(cfg.keyForApp(unifi.AppProtect)).To(Equal("shared"))
+	})
+
+	It("returns empty when neither key is set", func() {
+		Expect(Config{}.keyForApp(unifi.AppNetwork)).To(BeEmpty())
+	})
+})
+
+var _ = Describe("resolveFromFlags app-specific keys", func() {
+	It("merges the app-specific flag and selects it for that app", func() {
+		GinkgoT().Setenv("UNIFI_API_KEY", "")
+		GinkgoT().Setenv("UNIFI_HOST", "h")
+		GinkgoT().Setenv("UNIFI_CONSOLE_ID", "")
+
+		// Protect has its own key via flag; Network would have none and error.
+		conn, err := resolveFromFlags(&globalFlags{protectAPIKey: "protect-flag"}, unifi.AppProtect)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(conn).NotTo(BeNil())
+
+		_, nerr := resolveFromFlags(&globalFlags{protectAPIKey: "protect-flag"}, unifi.AppNetwork)
+		Expect(nerr).To(HaveOccurred())
 	})
 })
 

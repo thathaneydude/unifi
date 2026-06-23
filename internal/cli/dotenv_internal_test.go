@@ -7,6 +7,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/thathaneydude/unifi/unifi"
 )
 
 var _ = Describe("parseDotenv", func() {
@@ -124,7 +126,7 @@ var _ = Describe("resolveFromFlags with env files", func() {
 			_ = os.Unsetenv("UNIFI_HOST")
 		})
 
-		conn, err := resolveFromFlags(&globalFlags{envFile: p})
+		conn, err := resolveFromFlags(&globalFlags{envFile: p}, unifi.AppNetwork)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(conn).NotTo(BeNil())
 	})
@@ -138,13 +140,13 @@ var _ = Describe("resolveFromFlags with env files", func() {
 			_ = os.Unsetenv("UNIFI_CONSOLE_ID")
 		})
 
-		conn, err := resolveFromFlags(&globalFlags{})
+		conn, err := resolveFromFlags(&globalFlags{}, unifi.AppNetwork)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(conn).NotTo(BeNil())
 	})
 
 	It("errors when an explicit --env-file is missing", func() {
-		_, err := resolveFromFlags(&globalFlags{envFile: filepath.Join(GinkgoT().TempDir(), "nope.env")})
+		_, err := resolveFromFlags(&globalFlags{envFile: filepath.Join(GinkgoT().TempDir(), "nope.env")}, unifi.AppNetwork)
 		var cerr *CLIError
 		Expect(err).To(BeAssignableToTypeOf(cerr))
 		Expect(err.(*CLIError).ExitCode()).To(Equal(1))
