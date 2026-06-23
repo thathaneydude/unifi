@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
@@ -39,15 +41,70 @@ func WriteOperationIndex(w io.Writer, ops []Operation) error {
 	return err
 }
 
-// newListOperationsCommand returns `unifi <app> list-operations`.
-func newListOperationsCommand(app unifi.App, ops []Operation, out io.Writer) *cobra.Command {
-	return &cobra.Command{
+// requiredParamNames returns the names of an operation's required path and query
+// parameters, path first, in declaration order.
+func requiredParamNames(op Operation) []string {
+	var names []string
+	for _, p := range op.PathParams {
+		if p.Required {
+			names = append(names, p.Name)
+		}
+	}
+	for _, p := range op.QueryParams {
+		if p.Required {
+			names = append(names, p.Name)
+		}
+	}
+	return names
+}
+
+// WriteOperationIDs writes one operationId per line — the terse form agents want
+// for discovery without parsing JSON.
+func WriteOperationIDs(w io.Writer, ops []Operation) error {
+	for _, op := range ops {
+		if _, err := fmt.Fprintln(w, op.ID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// WriteOperationIndexHuman writes an aligned table: METHOD, operationId, summary,
+// and required parameters.
+func WriteOperationIndexHuman(w io.Writer, ops []Operation) error {
+	tw := tabwriter.NewWriter(w, 0, 2, 2, ' ', 0)
+	for _, op := range ops {
+		req := ""
+		if names := requiredParamNames(op); len(names) > 0 {
+			req = "[requires: " + strings.Join(names, ", ") + "]"
+		}
+		if _, err := fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", op.Method, op.ID, op.Summary, req); err != nil {
+			return err
+		}
+	}
+	return tw.Flush()
+}
+
+// newListOperationsCommand returns `unifi <app> list-operations`. Output honors
+// the global --format (json default, human table) plus an --ids shortcut.
+func newListOperationsCommand(app unifi.App, ops []Operation, out io.Writer, format func() Format) *cobra.Command {
+	var ids bool
+	cmd := &cobra.Command{
 		Use:   "list-operations",
-		Short: fmt.Sprintf("List all %s operations as JSON", app),
+		Short: fmt.Sprintf("List all %s operations (JSON; --format human or --ids for terse)", app),
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return WriteOperationIndex(out, ops)
+			switch {
+			case ids:
+				return WriteOperationIDs(out, ops)
+			case format != nil && format() == FormatHuman:
+				return WriteOperationIndexHuman(out, ops)
+			default:
+				return WriteOperationIndex(out, ops)
+			}
 		},
 	}
+	cmd.Flags().BoolVar(&ids, "ids", false, "print only operation ids, one per line")
+	return cmd
 }
 
 // newSchemaCommand returns `unifi schema` which dumps the embedded spec JSON.

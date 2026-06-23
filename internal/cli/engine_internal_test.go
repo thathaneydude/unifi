@@ -89,6 +89,59 @@ var _ = Describe("runOperation safety gate", func() {
 	})
 })
 
+var _ = Describe("required query parameters", func() {
+	var (
+		server *httptest.Server
+		called bool
+		out    *bytes.Buffer
+		deps   runDeps
+		op     Operation
+	)
+
+	BeforeEach(func() {
+		called = false
+		out = &bytes.Buffer{}
+		server = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		}))
+		DeferCleanup(server.Close)
+
+		conn := unifi.Local(server.Listener.Addr().String(), "secret", unifi.WithHTTPClient(server.Client()))
+		deps = runDeps{
+			connFn: func(unifi.App) (*unifi.Conn, error) { return conn, nil },
+			format: func() Format { return FormatJSON },
+			stdout: out,
+		}
+		op = Operation{
+			App: unifi.AppNetwork, ID: "GetOrdering", Method: http.MethodGet, Path: "/v1/ordering",
+			QueryParams: []Param{{Name: "zoneId", In: "query", Required: true}},
+		}
+	})
+
+	run := func(args ...string) error {
+		cmd := NewAppCommand(unifi.AppNetwork, []Operation{op}, deps)
+		cmd.SilenceErrors = true
+		cmd.SilenceUsage = true
+		cmd.SetArgs(args)
+		return cmd.Execute()
+	}
+
+	It("errors naming the missing required query flag and does not call the server", func() {
+		err := run("GetOrdering")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("zoneId"))
+		Expect(called).To(BeFalse())
+	})
+
+	It("executes once the required query flag is provided", func() {
+		err := run("GetOrdering", "--zoneId", "z1")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(called).To(BeTrue())
+	})
+})
+
 var _ = Describe("operation flag handling", func() {
 	var (
 		putItem Operation

@@ -147,6 +147,29 @@ unifi network getInfo            # picks up .env automatically
 unifi network getInfo --env-file ./prod.env
 ```
 
+### Ergonomics
+
+Global flags reduce the shell glue agents otherwise need:
+
+```sh
+# Site resolution — most Network ops need a siteId. Omit it and the CLI uses the
+# only site, or pass a name / "default" / id via --site (or UNIFI_SITE).
+unifi network getNetworksOverviewPage                 # auto-selects the sole site
+unifi network getNetworksOverviewPage --site default
+
+# Terse discovery — no JSON parsing to find operation ids.
+unifi network list-operations --ids                   # bare operation ids
+unifi network list-operations --format human          # aligned table + required params
+
+# Response shaping (applied to JSON; --format raw stays verbatim).
+unifi network getNetworksOverviewPage --fields name,vlanId   # keep dot-path record fields
+unifi network getNetworksOverviewPage --limit 5              # cap a result (or .data) array
+unifi network getVpnServerPage --redact                      # mask secret-like fields as ***
+```
+
+Required parameters (path and query) are validated up front, so an operation like
+`getFirewallPolicyOrdering` reports its missing zone-id flags instead of failing at the API.
+
 Realtime Protect subscriptions are intentionally **SDK-only** (see below), not exposed by the CLI.
 
 ## Security assessment skills
