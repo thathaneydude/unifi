@@ -55,3 +55,7 @@ docs/superpowers/
 
 # Stray specgen binary from `go build ./tools/specgen`
 /specgen
+
+# Local assessment artifacts (working references / deployment-specific output, never committed)
+skills/executed-commands.md
+unifi-assessment-*.md
