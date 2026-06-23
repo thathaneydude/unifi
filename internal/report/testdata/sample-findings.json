@@ -1,0 +1,106 @@
+{
+  "date": "2026-06-22",
+  "console": {
+    "name": "UDM-Pro-SE",
+    "network_version": "v10.4.57",
+    "protect_version": "absent"
+  },
+  "site_count": 1,
+  "skill_versions": {
+    "orchestrator": "0.1.0",
+    "unifi-network-security": "0.1.0",
+    "unifi-segmentation-wifi": "0.1.0",
+    "unifi-asset-inventory": "0.1.0"
+  },
+  "assessed_by": {
+    "model_name": "Claude Opus 4.8",
+    "model_id": "claude-opus-4-8"
+  },
+  "counts": { "critical": 1, "high": 2, "medium": 2, "low": 1, "info": 1 },
+  "top_risks": [
+    "A broad External→Internal firewall rule permits all WAN-sourced return traffic with no address or port constraints.",
+    "The guest SSID has client isolation disabled, so guests can reach each other and internal subnets.",
+    "Wi-Fi networks negotiate WPA2 rather than WPA3, and Protected Management Frames are off."
+  ],
+  "findings": [
+    {
+      "severity": "critical",
+      "title": "Broad WAN→Internal ALLOW rule with no source/destination filter",
+      "affected_resource": "firewall policy ac9fdc9f (\"Allow Return Traffic\"), External→Internal",
+      "evidence": {
+        "id": "ac9fdc9f",
+        "name": "Allow Return Traffic",
+        "action": { "type": "ALLOW", "allowReturnTraffic": true },
+        "enabled": true,
+        "source": { "zoneId": "External" },
+        "destination": { "zoneId": "Internal" },
+        "protocol": null
+      },
+      "remediation": "This rule permits all traffic from External (WAN) to Internal with no address/port constraints. Constrain it to established/related connections, or scope it to the specific services that must be reachable."
+    },
+    {
+      "severity": "high",
+      "title": "Guest network without client isolation",
+      "affected_resource": "SSID \"Guest\" (VLAN 30)",
+      "evidence": { "ssid": "Guest", "vlan": 30, "guestPolicyApplied": false, "l2Isolation": false },
+      "remediation": "Enable guest policy / L2 isolation so guest clients cannot reach one another or internal subnets."
+    },
+    {
+      "severity": "high",
+      "title": "Adopted switch running outdated firmware",
+      "affected_resource": "USW-Pro-24 \"Closet-A & B\" (mac ***)",
+      "evidence": { "model": "USW-Pro-24", "name": "Closet-A & B", "firmware": "6.5.59", "latest": "7.0.50", "upgradable": true },
+      "remediation": "Schedule a firmware upgrade; the installed build is several releases behind the latest stable."
+    },
+    {
+      "severity": "medium",
+      "title": "Wi-Fi negotiates WPA2 instead of WPA3",
+      "affected_resource": "SSID \"Corp\" (VLAN 10)",
+      "evidence": { "ssid": "Corp", "security": "wpa2", "pmf": "disabled" },
+      "remediation": "Move to WPA3 (or WPA2/WPA3 transitional) and enable Protected Management Frames where client support allows."
+    },
+    {
+      "severity": "medium",
+      "title": "Flat topology — IoT devices share the primary VLAN",
+      "affected_resource": "Default network (VLAN 1)",
+      "evidence": { "network": "Default", "vlan": 1, "iotClients": 14 },
+      "remediation": "Place IoT devices on a dedicated VLAN with inter-VLAN restrictions to limit lateral movement."
+    },
+    {
+      "severity": "low",
+      "title": "Guest vouchers configured to never expire",
+      "affected_resource": "Hotspot voucher policy",
+      "evidence": { "vouchers": 6, "neverExpires": true },
+      "remediation": "Set a finite expiry on guest vouchers so stale credentials cannot be reused indefinitely."
+    },
+    {
+      "severity": "info",
+      "title": "Client naming includes an unescaped device label (escaping check)",
+      "affected_resource": "client <Lobby&Cam> on VLAN 30",
+      "evidence": { "hostname": "<script>alert('xss')</script>", "note": "value & label test < > \" '" },
+      "remediation": "No action required — recorded to confirm report renders untrusted text safely (the value above must appear escaped, not executed)."
+    }
+  ],
+  "coverage": {
+    "domains_run": [
+      "unifi-network-security",
+      "unifi-segmentation-wifi",
+      "unifi-asset-inventory"
+    ],
+    "skipped": ["unifi-protect-security — no NVR detected"],
+    "not_assessable": [
+      "Packet-level inspection (outside integration-API scope)",
+      "Per-rule hit counters (not exposed on this firmware)"
+    ]
+  },
+  "appendix": [
+    {
+      "domain": "unifi-network-security",
+      "data": { "firewallPolicies": 12, "zones": ["Internal", "External", "Guest"], "vpnServers": 0 }
+    },
+    {
+      "domain": "unifi-asset-inventory",
+      "data": { "adoptedDevices": 7, "connectedClients": 41, "pendingDevices": 0 }
+    }
+  ]
+}

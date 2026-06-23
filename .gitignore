@@ -59,3 +59,4 @@ docs/superpowers/
 # Local assessment artifacts (working references / deployment-specific output, never committed)
 skills/executed-commands.md
 unifi-assessment-*.md
+unifi-assessment-*.html

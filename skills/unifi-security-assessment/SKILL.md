@@ -47,12 +47,20 @@ Collect all findings, de-duplicate, and sort by severity using the order in
 `references/severity-rubric.md`.
 
 ### 4. Write report
-Render `references/report-template.md` to `./unifi-assessment-YYYY-MM-DD.md` in
-the working directory. In the executive summary, record this skill's frontmatter
-`version` and each sub-skill's version, AND the AI model name + version running
-this assessment (e.g. `Claude Opus 4.8 (claude-opus-4-8)`) — state your own model
-identity. This lets the report be regenerated and diffed when skills improve or a
-newer model re-evaluates the same deployment.
+Emit the aggregated findings and metadata as a JSON document following the
+schema in `references/report-template.md`, then render it to a self-contained
+HTML report with the CLI:
+
+```
+unifi report --in findings.json --out ./unifi-assessment-YYYY-MM-DD.html
+```
+
+The `.html` is the deliverable; `findings.json` is an intermediate you may leave
+beside it. In the report metadata (`assessed_by` / `skill_versions`), record this
+skill's frontmatter `version` and each sub-skill's version, AND the AI model name
++ id running this assessment (e.g. `Claude Opus 4.8` / `claude-opus-4-8`) — state
+your own model identity. This lets the report be regenerated and diffed when
+skills improve or a newer model re-evaluates the same deployment.
 
 ## Guardrails
 - Read-only: never call mutating operations (Network `create*`/`update*`/`patch*`/`delete*`/`adopt*`/`remove*`/`execute*`; Protect `PostV1*`/`PutV1*`/`PatchV1*`/`DeleteV1*`).

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="unifi report">
+<title>UniFi Security Assessment — {{ .Date }}</title>
+<script>
+  // Apply the saved theme before first paint to avoid a flash. Self-contained;
+  // no network access. Defaults to dark to match the UniFi console.
+  (function () {
+    try {
+      var t = localStorage.getItem("unifi-report-theme");
+      if (t === "light" || t === "dark") {
+        document.documentElement.setAttribute("data-theme", t);
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root {
+    /* Brand + severity tokens (severity colors are theme-independent). */
+    --unifi-blue: #006FFF;
+    --unifi-blue-deep: #0559C9;
+    --sev-critical: #E5484D;
+    --sev-high: #F2740D;
+    --sev-medium: #F5C518;
+    --sev-low: #5B7FB0;
+    --sev-info: #8A93A2;
+
+    /* Dark theme (default). */
+    --bg: #0E1116;
+    --bg-elev: #11151C;
+    --card: #171C26;
+    --card-2: #1C2230;
+    --border: #232A36;
+    --text: #E6EAF0;
+    --muted: #97A1B0;
+    --accent: var(--unifi-blue);
+    --code-bg: #0B0E13;
+    /* Shadows tinted to the navy background hue, soft wide diffusion. */
+    --shadow: 0 1px 2px rgba(6, 10, 20, .5), 0 18px 40px -16px rgba(4, 8, 18, .6);
+    --focus: var(--unifi-blue);
+  }
+  html[data-theme="light"] {
+    --bg: #F5F7FA;
+    --bg-elev: #FFFFFF;
+    --card: #FFFFFF;
+    --card-2: #F7F9FC;
+    --border: #E2E7EE;
+    --text: #18202E;
+    --muted: #5A6573;
+    --accent: var(--unifi-blue-deep);
+    --code-bg: #F2F4F8;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 20px 40px -18px rgba(16, 24, 40, .12);
+    --focus: var(--unifi-blue-deep);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .25s ease, color .25s ease;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px 96px; }
+  /* Theme-aware surfaces ease between dark/light on toggle. */
+  .card, .chip, .evidence, pre, .resource code, .toggle {
+    transition: background-color .25s ease, border-color .25s ease, color .25s ease;
+  }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+
+  /* Header */
+  header.report {
+    background: linear-gradient(135deg, var(--unifi-blue-deep), var(--unifi-blue));
+    color: #fff;
+    border-radius: 0 0 16px 16px;
+    /* Edge refinement: soft drop + a 1px inner top highlight. */
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .16);
+  }
+  header.report .wrap { padding-top: 28px; padding-bottom: 28px; }
+  .brandrow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 36px; height: 36px; border-radius: 9px; flex: none;
+    background: rgba(255, 255, 255, .14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
+    display: grid; place-items: center;
+  }
+  .logo svg { width: 20px; height: 20px; display: block; }
+  header.report h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.2px; }
+  header.report .sub { margin-top: 4px; opacity: .9; font-size: 13.5px; }
+  .toggle {
+    appearance: none; border: 1px solid rgba(255, 255, 255, .35);
+    background: rgba(255, 255, 255, .12); color: #fff;
+    border-radius: 999px; padding: 7px 14px; font-size: 13px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px; flex: none;
+    transition: background-color .2s ease, transform .05s ease;
+  }
+  .toggle:hover { background: rgba(255, 255, 255, .22); }
+  .toggle:active { transform: translateY(1px); }
+  .toggle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* Sections */
+  section { margin-top: 32px; }
+  h2.section {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--muted); font-weight: 700; margin: 0 0 14px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow);
+  }
+
+  /* Executive summary */
+  .summary { padding: 20px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    display: inline-flex; align-items: baseline; gap: 8px;
+    background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 7px 14px; font-size: 13px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; align-self: center; }
+  .chip b { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .chip .lbl { color: var(--muted); }
+  .meta { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 24px; }
+  .meta .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .meta .v { font-size: 14px; word-break: break-word; }
+  .risks { margin: 18px 0 0; padding-left: 20px; }
+  .risks li { margin: 4px 0; }
+
+  .dot-critical { background: var(--sev-critical); }
+  .dot-high { background: var(--sev-high); }
+  .dot-medium { background: var(--sev-medium); }
+  .dot-low { background: var(--sev-low); }
+  .dot-info { background: var(--sev-info); }
+
+  /* Findings */
+  .sevhead { display: flex; align-items: center; gap: 10px; margin: 26px 0 12px; }
+  .sevhead .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .sevhead h3 { margin: 0; font-size: 16px; font-weight: 650; }
+  .sevhead .n { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .none { color: var(--muted); font-style: italic; margin: 0 0 4px 21px; }
+
+  .finding { padding: 16px 18px; margin-bottom: 12px; position: relative; overflow: hidden; }
+  .finding::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .finding.critical::before { background: var(--sev-critical); }
+  .finding.high::before { background: var(--sev-high); }
+  .finding.medium::before { background: var(--sev-medium); }
+  .finding.low::before { background: var(--sev-low); }
+  .finding.info::before { background: var(--sev-info); }
+  .finding .ftop { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 6px; color: #fff; flex: none;
+  }
+  .badge.critical { background: var(--sev-critical); }
+  .badge.high { background: var(--sev-high); }
+  .badge.medium { background: var(--sev-medium); color: #3a2d00; }
+  .badge.low { background: var(--sev-low); }
+  .badge.info { background: var(--sev-info); }
+  .finding h4 { margin: 0; font-size: 15.5px; font-weight: 620; }
+  .resource { margin-top: 8px; }
+  .resource code {
+    background: var(--card-2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px 7px; font-size: 12.5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--accent); word-break: break-all;
+  }
+  .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 6px; }
+  pre {
+    margin: 0; background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px; overflow-x: auto;
+  }
+  pre code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px; color: var(--text); white-space: pre;
+  }
+  .remediation { margin: 6px 0 0; }
+
+  /* Collapsible evidence disclosure — styled as an obvious toggle button */
+  .evidence-details { margin-top: 14px; }
+  .evidence-details > summary {
+    cursor: pointer; list-style: none; user-select: none; width: fit-content;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 12px 5px 11px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: var(--card-2);
+    transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+  }
+  .evidence-details > summary:hover { border-color: var(--accent); background: var(--card); }
+  .evidence-details > summary::-webkit-details-marker { display: none; }
+  .evidence-details > summary::before { content: "▸"; color: var(--accent); font-size: 11px; }
+  .evidence-details[open] > summary::before { content: "▾"; }
+  .evidence-details > summary .label { margin: 0; transition: color .15s ease; }
+  /* Explicit Show/Hide affordance that flips on expand. */
+  .evidence-details > summary::after {
+    content: "Show"; color: var(--muted);
+    font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .evidence-details[open] > summary::after { content: "Hide"; }
+  .evidence-details > summary:hover .label,
+  .evidence-details > summary:hover::after { color: var(--accent); }
+  .evidence-details > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .evidence-details > .evidence { margin-top: 10px; }
+
+  /* Humanized evidence table */
+  .evidence {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 14px; font-size: 13px;
+  }
+  .kv { display: flex; flex-direction: column; }
+  .kv-row {
+    display: grid; grid-template-columns: minmax(120px, 230px) 1fr; gap: 14px;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+  }
+  .kv > .kv-row:last-child { border-bottom: 0; }
+  .kv-key { color: var(--muted); }
+  .kv-val {
+    color: var(--text); word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px; font-variant-numeric: tabular-nums;
+  }
+  .kv-group { padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .kv > .kv-group:last-child { border-bottom: 0; }
+  .kv-grouphead { color: var(--accent); font-weight: 600; }
+  .kv-group > .kv, .kv-group > .kv-val {
+    margin: 4px 0 0 12px; padding-left: 12px; border-left: 2px solid var(--border);
+  }
+
+  /* Coverage */
+  .coverage .card { padding: 18px 20px; }
+  .coverage ul { margin: 6px 0 14px; padding-left: 20px; }
+  .coverage li { margin: 3px 0; }
+  .disclaimer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 6px; }
+
+  /* Appendix */
+  details.appx { margin-bottom: 10px; }
+  details.appx > summary {
+    cursor: pointer; padding: 12px 16px; list-style: none;
+    font-weight: 600; font-size: 14px;
+    display: flex; align-items: center; gap: 8px;
+    transition: color .15s ease;
+  }
+  details.appx > summary:hover { color: var(--accent); }
+  details.appx > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  details.appx > summary::-webkit-details-marker { display: none; }
+  details.appx > summary::before { content: "▸"; color: var(--muted); }
+  details.appx[open] > summary::before { content: "▾"; }
+  details.appx .body { padding: 0 16px 16px; }
+
+  footer.report { margin-top: 40px; color: var(--muted); font-size: 12.5px; text-align: center; }
+
+  @media print {
+    body { background: #fff; }
+    .toggle { display: none; }
+    .card, .finding, pre { box-shadow: none; }
+    /* Expand collapsed evidence/appendix so printed reports are complete. */
+    details > summary::before, .evidence-details > summary::after { display: none; }
+    .evidence-details > summary { border: 0; background: none; padding: 0; }
+    details > *:not(summary) { display: block !important; }
+    details.appx, .evidence-details { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<header class="report">
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.5 4.5 5.5v5.2c0 4.6 3.1 7.9 7.5 9.3 4.4-1.4 7.5-4.7 7.5-9.3V5.5L12 2.5Z"/>
+            <path d="m8.8 11.8 2.2 2.2 4.2-4.4"/>
+          </svg>
+        </div>
+        <div>
+          <h1>UniFi Security Assessment</h1>
+          <div class="sub">{{ .Console.Name }} · {{ .Date }}</div>
+        </div>
+      </div>
+      <button class="toggle" id="themeToggle" type="button" aria-label="Toggle color theme">
+        <span id="themeIcon">☀</span><span id="themeLabel">Light</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="exec">
+    <h2 class="section">Executive Summary</h2>
+    <div class="card summary">
+      <div class="chips">
+        {{- range .Groups }}
+        <span class="chip"><span class="dot dot-{{ .Severity }}"></span><b>{{ .Count }}</b><span class="lbl">{{ .Label }}</span></span>
+        {{- end }}
+      </div>
+      <div class="meta">
+        <div><div class="k">Console</div><div class="v">{{ .Console.Name }}</div></div>
+        <div><div class="k">Network</div><div class="v">{{ .Console.NetworkVersion }}</div></div>
+        <div><div class="k">Protect</div><div class="v">{{ .Console.ProtectVersion }}</div></div>
+        <div><div class="k">Sites</div><div class="v">{{ .SiteCount }}</div></div>
+        <div><div class="k">Assessed by</div><div class="v">{{ .AssessedBy.ModelName }} ({{ .AssessedBy.ModelID }})</div></div>
+        <div><div class="k">Skill versions</div><div class="v">{{ range $name, $ver := .SkillVersions }}{{ $name }} {{ $ver }}; {{ end }}</div></div>
+      </div>
+      {{- if .TopRisks }}
+      <div class="label">Top risks</div>
+      <ol class="risks">
+        {{- range .TopRisks }}
+        <li>{{ . }}</li>
+        {{- end }}
+      </ol>
+      {{- end }}
+    </div>
+  </section>
+
+  <section class="findings">
+    <h2 class="section">Findings</h2>
+    {{- range .Groups }}
+    <div class="sevhead">
+      <span class="dot dot-{{ .Severity }}"></span>
+      <h3>{{ .Label }}</h3>
+      <span class="n">({{ .Count }})</span>
+    </div>
+    {{- if .Findings }}
+      {{- range .Findings }}
+      <div class="card finding {{ .Severity }}">
+        <div class="ftop">
+          <span class="badge {{ .Severity }}" title="{{ canonicalSeverity .Severity }} severity">{{ severityLabel .Severity }}</span>
+          <h4>{{ .Title }}</h4>
+        </div>
+        {{- if .AffectedResource }}
+        <div class="resource"><code>{{ .AffectedResource }}</code></div>
+        {{- end }}
+        {{- if .Remediation }}
+        <div class="label">Remediation</div>
+        <p class="remediation">{{ .Remediation }}</p>
+        {{- end }}
+        {{- if .Evidence }}
+        <details class="evidence-details">
+          <summary><span class="label">Evidence</span></summary>
+          <div class="evidence">{{ evidenceHTML .Evidence }}</div>
+        </details>
+        {{- end }}
+      </div>
+      {{- end }}
+    {{- else }}
+      <p class="none">None.</p>
+    {{- end }}
+    {{- end }}
+  </section>
+
+  <section class="coverage">
+    <h2 class="section">Coverage &amp; Limitations</h2>
+    <div class="card">
+      {{- if .Coverage.DomainsRun }}
+      <div class="label">Domains run</div>
+      <ul>{{ range .Coverage.DomainsRun }}<li>{{ . }}</li>{{ end }}</ul>
+      {{- end }}
+      {{- if .Coverage.Skipped }}
+      <div class="label">Skipped</div>
+      <ul>{{ range .Coverage.Skipped }}<li>{{ . }}</li>{{ end }}</ul>
+      {{- end }}
+      {{- if .Coverage.NotAssessable }}
+      <div class="label">Not assessable via the integration API</div>
+      <ul>{{ range .Coverage.NotAssessable }}<li>{{ . }}</li>{{ end }}</ul>
+      {{- end }}
+      <p class="disclaimer">This assessment reflects only what the official UniFi integration API exposes. It is not a substitute for a full pentest or packet-level audit.</p>
+    </div>
+  </section>
+
+  {{- if .Appendix }}
+  <section class="appendix">
+    <h2 class="section">Appendix — Raw Collected Data</h2>
+    {{- range .Appendix }}
+    <details class="appx card">
+      <summary>{{ .Domain }}</summary>
+      <div class="body"><pre><code>{{ prettyJSON .Data }}</code></pre></div>
+    </details>
+    {{- end }}
+  </section>
+  {{- end }}
+
+  <footer class="report">Generated by <code>unifi report</code> · read-only integration-API scope</footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("themeToggle");
+    var icon = document.getElementById("themeIcon");
+    var label = document.getElementById("themeLabel");
+    function sync() {
+      var dark = root.getAttribute("data-theme") !== "light";
+      icon.textContent = dark ? "☀" : "☾";
+      label.textContent = dark ? "Light" : "Dark";
+    }
+    btn.addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("unifi-report-theme", next); } catch (e) {}
+      sync();
+    });
+    sync();
+  })();
+</script>
+</body>
+</html>
