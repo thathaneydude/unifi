@@ -13,7 +13,7 @@ and `schema` are used.
 
 | Skill | Version | Purpose |
 |---|---|---|
-| [`unifi-security-assessment`](unifi-security-assessment/SKILL.md) | 0.1.0 | **Orchestrator.** Preflights the console, detects Protect, runs the four domain skills below as parallel subagents, and aggregates one report. |
+| [`unifi-security-assessment`](unifi-security-assessment/SKILL.md) | 0.2.0 | **Orchestrator.** Enumerates consoles on a remote account and lets the user pick which to assess; per console preflights, detects Protect, runs the four domain skills below as parallel subagents, and aggregates one report each. |
 | [`unifi-network-security`](unifi-network-security/SKILL.md) | 0.1.0 | Firewall policies/zones, ACL rules + ordering, DNS policies, VPN, RADIUS. |
 | [`unifi-segmentation-wifi`](unifi-segmentation-wifi/SKILL.md) | 0.1.0 | VLAN/network segmentation, WiFi encryption, guest/IoT isolation. |
 | [`unifi-asset-inventory`](unifi-asset-inventory/SKILL.md) | 0.1.0 | Device firmware currency, rogue/pending devices, unexpected clients, vouchers. |

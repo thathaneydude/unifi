@@ -1,7 +1,7 @@
 ---
 name: unifi-security-assessment
-description: Read-only security assessment of a UniFi deployment (Network + Protect) using the unifi CLI. Orchestrates four domain skills as parallel subagents and produces a severity-ranked findings report. Use when asked to audit, assess, or review the security posture of a UniFi console.
-version: 0.1.0
+description: Read-only security assessment of a UniFi deployment (Network + Protect) using the unifi CLI. Enumerates consoles on a remote account, lets the user pick which to assess, orchestrates four domain skills as parallel subagents per console, and produces a severity-ranked findings report per console. Use when asked to audit, assess, or review the security posture of one or more UniFi consoles.
+version: 0.2.0
 ---
 
 # UniFi Security Assessment (orchestrator)
@@ -21,7 +21,31 @@ recommend fixes in prose; they are never applied.
 
 ## Flow
 
-### 1. Preflight
+### 0. Select console(s) — remote accounts
+A UniFi cloud account can hold several consoles (UDM, Cloud Key, NVR, …). When
+targeting remotely (i.e. `--host`/`UNIFI_HOST` is NOT set), discover them first:
+
+```
+unifi consoles list
+```
+
+This needs only the shared API key (`--api-key` / `UNIFI_API_KEY`); it does not
+need `--console-id`. Then:
+- **0 consoles** → stop and report a likely bad/again-scoped API key (the Site
+  Manager key from unifi.ui.com → Settings → API Keys is required for remote).
+- **1 console** → auto-select it and proceed (same as today's single-console run).
+- **>1 consoles** → present the list to the user (`name` · `model` · `id`) and ask
+  which to assess: one, several, or all. Do not assume — let the user choose.
+
+For each chosen console, target it by setting `--console <name>` (or `--console-id
+<id>` using the `id` from the list) on every CLI call in the steps below, then run
+steps 1–4 for that console. Assess consoles sequentially (or as one subagent per
+console); each produces its **own** report. When done, print a summary index of
+the reports written.
+
+Local runs (`--host` set) skip this step entirely — there is exactly one console.
+
+### 1. Preflight (per selected console)
 - Run `unifi network getInfo` to confirm the console is reachable and capture
   the deployment fingerprint (name, version, site count via
   `unifi network getSiteOverviewPage`).
@@ -52,11 +76,14 @@ schema in `references/report-template.md`, then render it to a self-contained
 HTML report with the CLI:
 
 ```
-unifi report --in findings.json --out ./unifi-assessment-YYYY-MM-DD.html
+unifi report --in findings.json --out ./unifi-assessment-<console>-YYYY-MM-DD.html
 ```
 
-The `.html` is the deliverable; `findings.json` is an intermediate you may leave
-beside it. In the report metadata (`assessed_by` / `skill_versions`), record this
+Name the output per console (e.g. a slug of the console name) so multiple
+consoles never overwrite each other; for a single-console run the `<console>`
+segment may be omitted. The `.html` is the deliverable; `findings.json` is an
+intermediate you may leave beside it. After all selected consoles are done,
+print an index listing each console and its report path. In the report metadata (`assessed_by` / `skill_versions`), record this
 skill's frontmatter `version` and each sub-skill's version, AND the AI model name
 + id running this assessment (e.g. `Claude Opus 4.8` / `claude-opus-4-8`) — state
 your own model identity. This lets the report be regenerated and diffed when

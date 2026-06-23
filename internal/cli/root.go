@@ -20,6 +20,7 @@ type globalFlags struct {
 	protectAPIKey string
 	host          string
 	consoleID     string
+	console       string
 	insecure      bool
 	format        string
 	envFile       string
@@ -61,6 +62,7 @@ func NewRootCommand() (*cobra.Command, error) {
 	pf.StringVar(&gf.protectAPIKey, "protect-api-key", "", "Protect API key (or UNIFI_PROTECT_API_KEY); falls back to --api-key")
 	pf.StringVar(&gf.host, "host", "", "local console host (or UNIFI_HOST)")
 	pf.StringVar(&gf.consoleID, "console-id", "", "remote console id (or UNIFI_CONSOLE_ID)")
+	pf.StringVar(&gf.console, "console", "", "remote console by name, model, or id; resolved via 'consoles list'")
 	pf.BoolVar(&gf.insecure, "insecure", false, "skip TLS verification (or UNIFI_INSECURE)")
 	pf.StringVar(&gf.format, "format", "json", "output format: json|raw|human")
 	pf.StringVar(&gf.envFile, "env-file", "", "path to a .env file (default ./.env if present)")
@@ -100,8 +102,30 @@ func NewRootCommand() (*cobra.Command, error) {
 		return selectSite(siteCache, want)
 	}
 
+	// resolveConsoleID looks up a console id from --console (name|model|id),
+	// fetching the account's consoles once per process (mirrors resolveSite).
+	var (
+		consolesOnce  sync.Once
+		consolesCache []console
+		consolesErr   error
+	)
+	resolveConsoleID := func(want string) (string, error) {
+		consolesOnce.Do(func() {
+			conn, err := resolveAccountConn(gf)
+			if err != nil {
+				consolesErr = err
+				return
+			}
+			consolesCache, consolesErr = listConsoles(context.Background(), conn)
+		})
+		if consolesErr != nil {
+			return "", consolesErr
+		}
+		return selectConsole(consolesCache, want)
+	}
+
 	deps := runDeps{
-		connFn:      func(app unifi.App) (*unifi.Conn, error) { return resolveFromFlags(gf, app) },
+		connFn:      func(app unifi.App) (*unifi.Conn, error) { return resolveConn(gf, app, resolveConsoleID) },
 		format:      func() Format { return formatFromFlags(gf) },
 		render:      func() RenderOptions { return RenderOptions{Fields: gf.fields, Redact: gf.redact, Limit: gf.limit} },
 		resolveSite: resolveSite,
@@ -136,16 +160,24 @@ func NewRootCommand() (*cobra.Command, error) {
 	}
 	root.AddCommand(newSchemaCommand(cat, os.Stdout))
 	root.AddCommand(newReportCommand(os.Stdout))
+	root.AddCommand(newConsolesCommand(
+		os.Stdout,
+		func() (*unifi.Conn, error) { return resolveAccountConn(gf) },
+		deps.format,
+		deps.render,
+	))
 	return root, nil
 }
 
-func resolveFromFlags(gf *globalFlags, app unifi.App) (*unifi.Conn, error) {
+// mergeConfig loads the .env file and merges environment + flags into a Config.
+// It performs no validation and makes no network calls.
+func mergeConfig(gf *globalFlags) (Config, error) {
 	envPath, required := ".env", false
 	if gf.envFile != "" {
 		envPath, required = gf.envFile, true
 	}
 	if err := loadDotenv(envPath, required); err != nil {
-		return nil, err
+		return Config{}, err
 	}
 	cfg := ConfigFromEnv()
 	if gf.apiKey != "" {
@@ -166,7 +198,51 @@ func resolveFromFlags(gf *globalFlags, app unifi.App) (*unifi.Conn, error) {
 	if gf.insecure {
 		cfg.Insecure = true
 	}
+	return cfg, nil
+}
+
+// resolveFromFlags merges config and builds an app connection with no --console
+// name resolution. Retained for the resolution it shares with tests.
+func resolveFromFlags(gf *globalFlags, app unifi.App) (*unifi.Conn, error) {
+	cfg, err := mergeConfig(gf)
+	if err != nil {
+		return nil, err
+	}
 	return ResolveConn(cfg, app)
+}
+
+// resolveConn builds an app connection, first resolving --console (name|model|id)
+// to a concrete console id via resolveID when set. A raw --console-id keeps the
+// fast path and makes no network call.
+func resolveConn(gf *globalFlags, app unifi.App, resolveID func(string) (string, error)) (*unifi.Conn, error) {
+	cfg, err := mergeConfig(gf)
+	if err != nil {
+		return nil, err
+	}
+	if gf.console != "" {
+		if gf.consoleID != "" || gf.host != "" {
+			return nil, NewUsageError("set only one of --console / --console-id / --host")
+		}
+		id, rerr := resolveID(gf.console)
+		if rerr != nil {
+			return nil, rerr
+		}
+		cfg.ConsoleID = id // --console always targets the cloud connector
+	}
+	return ResolveConn(cfg, app)
+}
+
+// resolveAccountConn builds an account-level (Site Manager API) connection for
+// console enumeration. It needs only the shared API key — not --host/--console-id.
+func resolveAccountConn(gf *globalFlags) (*unifi.Conn, error) {
+	cfg, err := mergeConfig(gf)
+	if err != nil {
+		return nil, err
+	}
+	if cfg.APIKey == "" {
+		return nil, NewAuthError("missing API key: set --api-key (or UNIFI_API_KEY) to list consoles")
+	}
+	return unifi.Account(cfg.APIKey), nil
 }
 
 // parseFormat validates and maps the --format value. An empty value defaults to

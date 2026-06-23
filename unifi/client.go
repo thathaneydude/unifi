@@ -61,3 +61,13 @@ func Remote(consoleID, apiKey string, opts ...Option) *Conn {
 		return "https://api.ui.com/v1/connector/consoles/" + consoleID + "/" + string(app) + "/integration"
 	}, opts...)
 }
+
+// Account builds a connection to the account-level UniFi Site Manager API
+// (api.ui.com). Unlike Local/Remote it is not scoped to a single console: it
+// answers account-wide endpoints such as GET /v1/hosts (the consoles list).
+// The prefix ignores App because these endpoints are app-agnostic.
+func Account(apiKey string, opts ...Option) *Conn {
+	return newConn(apiKey, func(App) string {
+		return "https://api.ui.com"
+	}, opts...)
+}
