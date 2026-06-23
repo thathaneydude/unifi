@@ -74,7 +74,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		}
 		ops := OperationsFor(doc, app, version)
 		appCmd := NewAppCommand(app, ops, deps)
-		appCmd.AddCommand(newListOperationsCommand(app, ops, os.Stdout))
+		appCmd.AddCommand(newListOperationsCommand(app, ops, os.Stdout, deps.format))
 		root.AddCommand(appCmd)
 	}
 	root.AddCommand(newSchemaCommand(cat, os.Stdout))
