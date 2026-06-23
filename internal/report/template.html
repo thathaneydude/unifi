@@ -328,15 +328,15 @@
         {{- if .AffectedResource }}
         <div class="resource"><code>{{ .AffectedResource }}</code></div>
         {{- end }}
+        {{- if .Remediation }}
+        <div class="label">Remediation</div>
+        <p class="remediation">{{ .Remediation }}</p>
+        {{- end }}
         {{- if .Evidence }}
         <details class="evidence-details">
           <summary><span class="label">Evidence</span></summary>
           <div class="evidence">{{ evidenceHTML .Evidence }}</div>
         </details>
-        {{- end }}
-        {{- if .Remediation }}
-        <div class="label">Remediation</div>
-        <p class="remediation">{{ .Remediation }}</p>
         {{- end }}
       </div>
       {{- end }}
