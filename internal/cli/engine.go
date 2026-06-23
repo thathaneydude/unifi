@@ -16,6 +16,7 @@ import (
 type runDeps struct {
 	connFn func(unifi.App) (*unifi.Conn, error) // resolves config -> Conn for an app at run time
 	format func() Format                        // global output format
+	render func() RenderOptions                 // global --fields/--redact/--limit (may be nil)
 	stdout io.Writer                            // results go here; errors are rendered in RunRoot
 }
 
@@ -160,7 +161,13 @@ func runOperation(
 	if status < 200 || status >= 300 {
 		return NewAPIError(op.ID, status, respBody)
 	}
-	return WriteResult(d.stdout, d.format(), respBody)
+	format := d.format()
+	// Post-processing (field selection, redaction, limit) operates on JSON, so
+	// it is skipped for raw passthrough which must stay byte-for-byte.
+	if format != FormatRaw && d.render != nil {
+		respBody = ApplyTransforms(respBody, d.render())
+	}
+	return WriteResult(d.stdout, format, respBody)
 }
 
 func resolveBody(inline, file string) ([]byte, error) {

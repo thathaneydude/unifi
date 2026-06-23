@@ -20,6 +20,9 @@ type globalFlags struct {
 	insecure      bool
 	format        string
 	envFile       string
+	fields        []string
+	redact        bool
+	limit         int
 }
 
 // NewRootCommand assembles the full `unifi` command tree from the embedded specs.
@@ -57,10 +60,14 @@ func NewRootCommand() (*cobra.Command, error) {
 	pf.BoolVar(&gf.insecure, "insecure", false, "skip TLS verification (or UNIFI_INSECURE)")
 	pf.StringVar(&gf.format, "format", "json", "output format: json|raw|human")
 	pf.StringVar(&gf.envFile, "env-file", "", "path to a .env file (default ./.env if present)")
+	pf.StringSliceVar(&gf.fields, "fields", nil, "keep only these dot-paths from each record (e.g. name,action.type)")
+	pf.BoolVar(&gf.redact, "redact", false, "mask values under secret-like keys (key/secret/psk/token/…)")
+	pf.IntVar(&gf.limit, "limit", 0, "cap a result array (or .data) to N items (0 = all)")
 
 	deps := runDeps{
 		connFn: func(app unifi.App) (*unifi.Conn, error) { return resolveFromFlags(gf, app) },
 		format: func() Format { return formatFromFlags(gf) },
+		render: func() RenderOptions { return RenderOptions{Fields: gf.fields, Redact: gf.redact, Limit: gf.limit} },
 		stdout: os.Stdout,
 	}
 
