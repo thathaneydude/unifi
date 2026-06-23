@@ -91,6 +91,56 @@ func TestRenderEmptySeverityShowsNone(t *testing.T) {
 	}
 }
 
+func TestRenderEvidenceAsHumanizedTable(t *testing.T) {
+	html := renderSample(t)
+	wants := []string{
+		`class="evidence"`,        // evidence is a table, not a <pre> JSON dump
+		"Allow Return Traffic",    // humanized key for allowReturnTraffic
+		"Zone Id",                 // humanized key for zoneId
+		`<div class="kv-val">Yes`, // boolean true -> Yes
+		`<div class="kv-val">—`,   // null -> em dash
+	}
+	for _, w := range wants {
+		if !strings.Contains(html, w) {
+			t.Errorf("humanized evidence missing %q", w)
+		}
+	}
+	// The critical finding's evidence must no longer render as a raw JSON object.
+	if strings.Contains(html, `"allowReturnTraffic": true`) {
+		t.Error("evidence still rendered as raw JSON")
+	}
+}
+
+func TestHumanizeKey(t *testing.T) {
+	cases := map[string]string{
+		"allowReturnTraffic": "Allow Return Traffic",
+		"zoneId":             "Zone Id",
+		"network_version":    "Network Version",
+		"id":                 "Id",
+		"type":               "Type",
+	}
+	for in, want := range cases {
+		if got := humanizeKey(in); got != want {
+			t.Errorf("humanizeKey(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestEvidenceHTMLEscapesAndFallsBack(t *testing.T) {
+	out := string(evidenceHTML(json.RawMessage(`{"hostname":"<script>alert('x')</script>"}`)))
+	if strings.Contains(out, "<script>alert('x')</script>") {
+		t.Error("evidenceHTML did not escape untrusted value")
+	}
+	if !strings.Contains(out, "&lt;script&gt;") {
+		t.Error("evidenceHTML missing escaped value")
+	}
+	// Malformed JSON falls back to escaped raw text rather than panicking.
+	bad := string(evidenceHTML(json.RawMessage(`{not json`)))
+	if !strings.Contains(bad, "&#39;") && !strings.Contains(bad, "not json") {
+		t.Errorf("fallback unexpected: %q", bad)
+	}
+}
+
 func TestParseRejectsInvalidJSON(t *testing.T) {
 	if _, err := Parse([]byte("{not json")); err == nil {
 		t.Error("expected error for malformed JSON")

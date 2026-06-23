@@ -169,6 +169,30 @@
   }
   .remediation { margin: 6px 0 0; }
 
+  /* Humanized evidence table */
+  .evidence {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 14px; font-size: 13px;
+  }
+  .kv { display: flex; flex-direction: column; }
+  .kv-row {
+    display: grid; grid-template-columns: minmax(120px, 230px) 1fr; gap: 14px;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+  }
+  .kv > .kv-row:last-child { border-bottom: 0; }
+  .kv-key { color: var(--muted); }
+  .kv-val {
+    color: var(--text); word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+  }
+  .kv-group { padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .kv > .kv-group:last-child { border-bottom: 0; }
+  .kv-grouphead { color: var(--accent); font-weight: 600; }
+  .kv-group > .kv, .kv-group > .kv-val {
+    margin: 4px 0 0 12px; padding-left: 12px; border-left: 2px solid var(--border);
+  }
+
   /* Coverage */
   .coverage .card { padding: 18px 20px; }
   .coverage ul { margin: 6px 0 14px; padding-left: 20px; }
@@ -264,7 +288,7 @@
         {{- end }}
         {{- if .Evidence }}
         <div class="label">Evidence</div>
-        <pre><code>{{ prettyJSON .Evidence }}</code></pre>
+        <div class="evidence">{{ evidenceHTML .Evidence }}</div>
         {{- end }}
         {{- if .Remediation }}
         <div class="label">Remediation</div>
