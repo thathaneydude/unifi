@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"sync"
 
 	"github.com/spf13/cobra"
 
@@ -23,6 +26,7 @@ type globalFlags struct {
 	fields        []string
 	redact        bool
 	limit         int
+	site          string
 }
 
 // NewRootCommand assembles the full `unifi` command tree from the embedded specs.
@@ -63,11 +67,50 @@ func NewRootCommand() (*cobra.Command, error) {
 	pf.StringSliceVar(&gf.fields, "fields", nil, "keep only these dot-paths from each record (e.g. name,action.type)")
 	pf.BoolVar(&gf.redact, "redact", false, "mask values under secret-like keys (key/secret/psk/token/…)")
 	pf.IntVar(&gf.limit, "limit", 0, "cap a result array (or .data) to N items (0 = all)")
+	pf.StringVar(&gf.site, "site", "", "site name, 'default', or id (or UNIFI_SITE); auto-selects when only one site")
+
+	// resolveSite looks up a siteId from --site/UNIFI_SITE (or the sole site),
+	// fetching the sites overview once per process. sitesPath is filled in below
+	// from the network spec; the closure reads it at run time.
+	var (
+		sitesPath string
+		siteOnce  sync.Once
+		siteCache []site
+		siteErr   error
+	)
+	resolveSite := func(ctx context.Context, conn *unifi.Conn, want string) (string, error) {
+		if sitesPath == "" {
+			return "", NewUsageError("cannot resolve site: sites operation not found; pass --siteId explicitly")
+		}
+		siteOnce.Do(func() {
+			op := Operation{App: unifi.AppNetwork, ID: "getSiteOverviewPage", Method: http.MethodGet, Path: sitesPath}
+			body, status, execErr := Execute(ctx, conn, op, Values{Path: map[string]string{}, Query: map[string]string{}})
+			switch {
+			case execErr != nil:
+				siteErr = execErr
+			case status < 200 || status >= 300:
+				siteErr = NewAPIError("getSiteOverviewPage", status, body)
+			default:
+				siteCache, siteErr = parseSites(body)
+			}
+		})
+		if siteErr != nil {
+			return "", siteErr
+		}
+		return selectSite(siteCache, want)
+	}
 
 	deps := runDeps{
-		connFn: func(app unifi.App) (*unifi.Conn, error) { return resolveFromFlags(gf, app) },
-		format: func() Format { return formatFromFlags(gf) },
-		render: func() RenderOptions { return RenderOptions{Fields: gf.fields, Redact: gf.redact, Limit: gf.limit} },
+		connFn:      func(app unifi.App) (*unifi.Conn, error) { return resolveFromFlags(gf, app) },
+		format:      func() Format { return formatFromFlags(gf) },
+		render:      func() RenderOptions { return RenderOptions{Fields: gf.fields, Redact: gf.redact, Limit: gf.limit} },
+		resolveSite: resolveSite,
+		site: func() string {
+			if gf.site != "" {
+				return gf.site
+			}
+			return os.Getenv("UNIFI_SITE")
+		},
 		stdout: os.Stdout,
 	}
 
@@ -80,6 +123,13 @@ func NewRootCommand() (*cobra.Command, error) {
 			return nil, derr
 		}
 		ops := OperationsFor(doc, app, version)
+		if app == unifi.AppNetwork {
+			for _, op := range ops {
+				if op.ID == "getSiteOverviewPage" {
+					sitesPath = op.Path
+				}
+			}
+		}
 		appCmd := NewAppCommand(app, ops, deps)
 		appCmd.AddCommand(newListOperationsCommand(app, ops, os.Stdout, deps.format))
 		root.AddCommand(appCmd)

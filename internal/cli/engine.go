@@ -14,10 +14,12 @@ import (
 // runDeps carries everything an operation's RunE needs, resolved lazily so the
 // command tree can be built without credentials present.
 type runDeps struct {
-	connFn func(unifi.App) (*unifi.Conn, error) // resolves config -> Conn for an app at run time
-	format func() Format                        // global output format
-	render func() RenderOptions                 // global --fields/--redact/--limit (may be nil)
-	stdout io.Writer                            // results go here; errors are rendered in RunRoot
+	connFn      func(unifi.App) (*unifi.Conn, error)                       // resolves config -> Conn for an app at run time
+	format      func() Format                                              // global output format
+	render      func() RenderOptions                                       // global --fields/--redact/--limit (may be nil)
+	resolveSite func(context.Context, *unifi.Conn, string) (string, error) // resolves a siteId (may be nil)
+	site        func() string                                              // wanted --site/UNIFI_SITE value (may be nil)
+	stdout      io.Writer                                                  // results go here; errors are rendered in RunRoot
 }
 
 // NewAppCommand builds `unifi <app>` with one subcommand per operation. deps may
@@ -93,7 +95,10 @@ func newOperationCommand(op Operation, d *runDeps) *cobra.Command {
 	for _, p := range op.PathParams {
 		dst := new(string)
 		sub.Flags().StringVar(dst, p.Name, "", "path: "+p.Description)
-		if p.Required {
+		// siteId is intentionally not marked required: the CLI resolves it from
+		// --site/UNIFI_SITE or the sole site when omitted (see runOperation).
+		// Marking it required would fire before RunE and defeat that resolution.
+		if p.Required && p.Name != "siteId" {
 			// Cannot fail: the flag was just registered above.
 			_ = sub.MarkFlagRequired(p.Name)
 		}
@@ -148,6 +153,22 @@ func runOperation(
 	conn, err := d.connFn(op.App)
 	if err != nil {
 		return err
+	}
+
+	// Resolve siteId from --site/UNIFI_SITE (or the sole site) when the op needs
+	// it and the user did not pass --siteId explicitly.
+	if d.resolveSite != nil && opNeedsSite(op) {
+		if _, set := vals.Path["siteId"]; !set {
+			want := ""
+			if d.site != nil {
+				want = d.site()
+			}
+			id, rerr := d.resolveSite(ctx, conn, want)
+			if rerr != nil {
+				return rerr
+			}
+			vals.Path["siteId"] = id
+		}
 	}
 
 	if op.Mutating() && dryRun {
