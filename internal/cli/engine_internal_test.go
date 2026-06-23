@@ -45,7 +45,7 @@ var _ = Describe("runOperation safety gate", func() {
 		host := server.Listener.Addr().String()
 		conn := unifi.Local(host, "secret", unifi.WithHTTPClient(server.Client()))
 		deps = runDeps{
-			connFn: func() (*unifi.Conn, error) { return conn, nil },
+			connFn: func(unifi.App) (*unifi.Conn, error) { return conn, nil },
 			format: func() Format { return FormatJSON },
 			stdout: out,
 		}
@@ -100,7 +100,7 @@ var _ = Describe("operation flag handling", func() {
 		out = &bytes.Buffer{}
 		conn := unifi.Local("127.0.0.1", "secret")
 		deps = runDeps{
-			connFn: func() (*unifi.Conn, error) { return conn, nil },
+			connFn: func(unifi.App) (*unifi.Conn, error) { return conn, nil },
 			format: func() Format { return FormatJSON },
 			stdout: out,
 		}

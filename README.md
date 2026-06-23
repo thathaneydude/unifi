@@ -119,6 +119,21 @@ unifi protect GetV1Cameras                # call an operation → JSON
 unifi network getInfo --format human      # human-readable view
 ```
 
+Network and Protect mint **separate** integration API keys, so over the local transport each app
+needs its own key. Set both to drive both apps from one configuration:
+
+```sh
+export UNIFI_NETWORK_API_KEY=your-network-key   # or --network-api-key
+export UNIFI_PROTECT_API_KEY=your-protect-key   # or --protect-api-key
+
+unifi network getInfo         # uses the Network key
+unifi protect GetV1Cameras    # uses the Protect key
+```
+
+Each app falls back to the shared `UNIFI_API_KEY` / `--api-key` when its app-specific key is unset,
+so a single key still works for whichever app you target. (Over the remote transport, one
+account-level Site-Manager key reaches both apps.)
+
 The CLI also auto-loads a `.env` file from the working directory if present (use `--env-file <path>`
 for a custom location). Real environment variables and flags take precedence, so the resolution order
 is **flags > environment > `.env`**:
