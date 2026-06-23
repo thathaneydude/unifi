@@ -135,6 +135,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		root.AddCommand(appCmd)
 	}
 	root.AddCommand(newSchemaCommand(cat, os.Stdout))
+	root.AddCommand(newReportCommand(os.Stdout))
 	return root, nil
 }
 

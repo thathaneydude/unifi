@@ -21,8 +21,8 @@ and `schema` are used.
 
 The orchestrator owns two shared references used by every domain skill:
 `unifi-security-assessment/references/severity-rubric.md` (severity definitions)
-and `unifi-security-assessment/references/report-template.md` (report skeleton +
-finding shape).
+and `unifi-security-assessment/references/report-template.md` (findings.json
+schema + finding shape).
 
 ## Prerequisites
 
@@ -86,7 +86,8 @@ Run a UniFi security assessment of my deployment.
 ```
 
 The agent loads `unifi-security-assessment`, which fans out to the four domain
-skills and writes a report to `./unifi-assessment-YYYY-MM-DD.md` in the working
+skills and renders a self-contained, UniFi-branded HTML report (via
+`unifi report`) to `./unifi-assessment-YYYY-MM-DD.html` in the working
 directory. The report contains:
 
 - an **executive summary** (console/version fingerprint, the skill versions
