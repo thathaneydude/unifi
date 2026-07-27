@@ -18,10 +18,14 @@ jobs:
   verify:
     name: build / drift-guard / lint
     runs-on: ubuntu-latest
-    # Only the repository owner may trigger CI. The repo is private with the
-    # owner as the sole collaborator; this guard keeps CI owner-only even if
-    # visibility or collaborators change.
-    if: ${{ github.actor == github.repository_owner }}
+    # Only the repository owner and the Renovate app may trigger CI. The repo is
+    # private with the owner as the sole collaborator; this guard keeps CI closed
+    # even if visibility or collaborators change.
+    #
+    # The bot MUST be listed here. A job skipped by this guard reports a
+    # "skipped" conclusion, which Renovate reads as passing — excluding the bot
+    # would let dependency PRs automerge with no CI having run at all.
+    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' }}
     permissions:
       contents: read
     steps:
@@ -69,7 +73,8 @@ jobs:
   unit:
     name: unit tests
     runs-on: ubuntu-latest
-    if: ${{ github.actor == github.repository_owner }}
+    # Owner + Renovate app, as in `verify` above.
+    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' }}
     permissions:
       contents: read
     steps:
@@ -95,6 +100,11 @@ jobs:
   e2e:
     name: e2e tests
     runs-on: ubuntu-latest
+    # Owner-only, deliberately narrower than `verify`/`unit`: this is the only
+    # job that can read the real-console credentials, so it does not run for
+    # Renovate's dependency PRs — a freshly bumped third-party module never gets
+    # to execute against the live console. It skips there, and Renovate still
+    # gates automerge on verify + unit + commit-lint.
     if: ${{ github.actor == github.repository_owner }}
     permissions:
       contents: read
@@ -126,7 +136,10 @@ jobs:
   commit-lint:
     name: commit lint
     runs-on: ubuntu-latest
-    if: ${{ github.actor == github.repository_owner }}
+    # Owner + Renovate app, as in `verify` above. Renovate's own commits are
+    # conventional (`build(deps): ...`, configured in renovate.json5), so this
+    # check is meaningful on its PRs rather than a formality.
+    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' }}
     permissions:
       contents: read
     steps:
