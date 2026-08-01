@@ -28,8 +28,20 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Owner-only, matching ci.yml. The repo is private with the owner as the sole
-    # collaborator; this keeps releases owner-only even if that changes.
+    # Owner-only, and deliberately NOT widened to the Renovate app the way
+    # ci.yml's guards were. Renovate's automerged dependency PRs land on main as
+    # the bot, which does not match this guard, so they do not cut a release on
+    # their own — they batch into the next owner-merged push.
+    #
+    # That is the intended behaviour, not an oversight. `build` is a releasable
+    # type under cliff.toml, so a widened guard would publish a patch release
+    # plus the full cross-platform goreleaser artifact set for every automerged
+    # dependency bump.
+    #
+    # The consequence to know: after a run of automerges, main carries
+    # unreleased commits until you push something yourself. `gh workflow run`
+    # on this file is not a manual escape hatch — it has no workflow_dispatch
+    # trigger; push to main or tag by hand and let release.yml take it.
     if: ${{ github.actor == github.repository_owner }}
     permissions:
       contents: write
