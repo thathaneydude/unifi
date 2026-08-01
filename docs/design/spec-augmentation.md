@@ -30,6 +30,8 @@ We do **not** commit raw upstream JSON. Instead `tools/specgen` (invoked by `jus
 
 1. Reads `specs/versions.yaml` — the source of truth for pinned versions:
    ```yaml
+   mirror: https://raw.githubusercontent.com/opastorello/unifi-api-docs
+   mirror-commit: 6425bbc2…   # immutable; full 40-char SHA enforced by specgen
    network:
      default: v10.3.58
      versions: [v10.3.58]
@@ -88,10 +90,25 @@ documentation and validation.
 
 ## Determinism & drift
 
-- Same `versions.yaml` + overlays ⇒ byte-identical `specs/build/**`.
+Two things have to be pinned, not one. `versions` pins the **UniFi API version**;
+`mirror-commit` pins the **bytes**. The mirror re-scrapes `developer.ui.com` on a schedule and
+rewrites files in place under an unchanged version directory — and some of what it emits (e.g.
+unresolved `"$1e"`-style description placeholders) is position-dependent, so it churns even when the
+API itself has not moved. A version path therefore does not identify a fixed document.
+
+`mirror-commit` was the ref `HEAD` until 2026-07-31. The consequence was that `just sync` returned
+different bytes over time for an unchanged tree, so the drift guard below failed on upstream
+re-scrapes rather than on real drift — CI went red with nothing in this repo having changed.
+`Config.Validate` now rejects anything that is not a full 40-character SHA.
+
+- Same `versions.yaml` (**including `mirror-commit`**) + overlays ⇒ byte-identical `specs/build/**`.
 - CI re-runs `just sync && just gen` and fails if committed specs or `lib/**` differ (drift guard).
-- The scheduled `spec-sync` workflow opens a PR when the mirror changes for a pinned version, and a
-  separate PR that **appends** a newly available version to `versions.yaml` and moves `default`.
+  With the pin immutable, this catches drift in *this* repo — an overlay or fixup edited without
+  regenerating — which is what it was always meant to catch.
+- The scheduled `spec-sync` workflow advances `mirror-commit` to the mirror's current HEAD, re-syncs,
+  and opens a PR with whatever that changed; and a separate PR that **appends** a newly available
+  version to `versions.yaml` and moves `default`. Upstream churn arrives as a reviewable PR instead
+  of as a red build.
 
 ## Protect `v7.1.83`
 

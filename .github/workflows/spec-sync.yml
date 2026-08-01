@@ -37,6 +37,35 @@ jobs:
       - name: Set up just
         uses: extractions/setup-just@v2
 
+      # specs/versions.yaml pins the mirror to an immutable commit, so `just
+      # sync` on its own can never surface upstream changes — it would refetch
+      # the same bytes forever. Advancing that pin is this workflow's job: move
+      # it to the mirror's current HEAD, then let the sync below show what the
+      # move changed. If the mirror has not moved, the sed is a no-op, nothing
+      # in the tree changes, and no PR is opened.
+      - name: Advance the mirror pin to the mirror's current HEAD
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Derive the mirror repo from the pinned URL rather than repeating the
+          # slug here, so specs/versions.yaml stays the single source of truth.
+          repo="$(sed -nE 's|^mirror: https://raw\.githubusercontent\.com/([^/]+/[^/]+)/?$|\1|p' specs/versions.yaml)"
+          if [ -z "$repo" ]; then
+            echo "::error::could not derive the mirror repo from the 'mirror:' line in specs/versions.yaml"
+            exit 1
+          fi
+
+          sha="$(gh api "repos/${repo}/commits/HEAD" --jq .sha)"
+          if ! printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::mirror HEAD is not a full 40-character SHA: '${sha}'"
+            exit 1
+          fi
+
+          sed -i -E "s|^mirror-commit: .*|mirror-commit: ${sha}|" specs/versions.yaml
+          echo "mirror ${repo} pinned to ${sha}"
+
       - name: Re-sync specs and regenerate artifacts
         run: |
           just sync
@@ -48,24 +77,29 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: bot/spec-resync
-          commit-message: "chore(specs): re-sync pinned specs from upstream mirror"
-          title: "chore(specs): re-sync pinned specs from upstream mirror"
+          commit-message: "chore(specs): advance the mirror pin and re-sync specs"
+          title: "chore(specs): advance the mirror pin and re-sync specs"
           body: |
             ## Summary
 
-            This automated PR was opened by the `spec-sync` workflow after
-            detecting that the pinned specs or generated artifacts drifted from
-            what the upstream mirror currently provides.
+            This automated PR was opened by the `spec-sync` workflow after the
+            upstream mirror moved. The `mirror-commit` pin in
+            `specs/versions.yaml` has been advanced to the mirror's current
+            HEAD, and the specs and generated artifacts re-synced against it.
 
             The following steps were run to produce this diff:
 
             ```
-            just sync       # fetches pinned specs from the upstream mirror → specs/build
+            # advance mirror-commit in specs/versions.yaml to the mirror's HEAD
+            just sync       # fetches the pinned specs from the mirror → specs/build
             just gen        # runs go generate ./... (oapi-codegen + counterfeiter)
             go generate ./... # belt-and-suspenders re-run
             ```
 
-            Please review the diff, run the test suite, and merge if everything
-            looks correct.
+            Note that the mirror re-scrapes `developer.ui.com` and rewrites
+            specs in place under an unchanged version directory, so a diff here
+            does **not** imply a new UniFi API version — it is often just churn
+            in descriptions or tag metadata. Review the diff, run the test
+            suite, and merge if everything looks correct.
           labels: "automated,specs"
           draft: false
