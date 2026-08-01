@@ -3,14 +3,27 @@
   // Shared tier policy (automerge minor/patch/digest, majors PR-only, Actions
   // grouped) lives in the homelab repo. Same owner, same app installation, so
   // the preset is fetchable; only unifi-specific overrides belong below.
-  extends: ["github>thathaneydude/homelab//renovate/default.json5"],
+  extends: [
+    "github>thathaneydude/homelab//renovate/default.json5",
+    // MUST come after the preset. The preset extends config:recommended, which
+    // pulls in :semanticPrefixFixDepsChoreOthers — that preset sets the commit
+    // type through *packageRules* (`fix` for dependencies, `chore` for the
+    // rest), and a packageRule beats the top-level `semanticCommitType` below.
+    // Without this line the setting is silently ignored: the first live run
+    // produced `fix(deps): update module github.com/onsi/gomega` and
+    // `chore(deps): update dependency python`, never `build(deps)`.
+    ":semanticCommitTypeAll(build)",
+  ],
 
   // The preset turns semantic commits off (most repos use plain imperative
   // subjects); this repo enforces Conventional Commits via .conform.yaml and the
-  // `commit lint` CI job, so they go back on here. `build` is both an allowed
-  // conform type and the Conventional Commits type for dependency changes, and
+  // `commit lint` CI job, so they go back on here. `build` is an allowed conform
+  // type and the Conventional Commits type for dependency changes, and
   // cliff.toml groups it under "Build & CI" — `fix(deps)` would file bumps under
   // "Bug Fixes" and `chore(deps)` would drop them from the changelog entirely.
+  //
+  // Nothing catches this drifting: .conform.yaml also allows `fix` and `chore`,
+  // so `commit lint` passes either way and only the changelog comes out wrong.
   semanticCommits: "enabled",
   semanticCommitType: "build",
   semanticCommitScope: "deps",
