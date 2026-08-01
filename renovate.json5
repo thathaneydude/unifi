@@ -43,5 +43,26 @@
         "⚠️ **Do not merge on its own.** The `go` directive is mirrored by the `go-version:` pins in `.github/workflows/{ci,docs,release,release-on-main,spec-sync}.yml`. Bump those in the same PR or CI builds on a different toolchain than the module declares.",
       ],
     },
+    {
+      // These two produce the artifacts the drift guard checks: oapi-codegen
+      // writes lib/**/client.gen.go, counterfeiter writes the fakes. Bumping
+      // either rewrites generated code, so the PR fails the drift guard until
+      // someone regenerates — and the regenerated diff is far too large to be
+      // reviewed as part of a routine dependency bump. #23 (oapi-codegen
+      // v2.7 → v2.8) changed 17,329 lines across the two clients.
+      //
+      // Same reasoning as the `go` directive above: a bump whose blast radius
+      // is the whole generated surface rides a reviewed PR, not automation.
+      description: "Code generators change committed output — reviewed PR only",
+      matchManagers: ["gomod"],
+      matchDepNames: [
+        "github.com/oapi-codegen/oapi-codegen/v2",
+        "github.com/maxbrunsfeld/counterfeiter/v6",
+      ],
+      automerge: false,
+      prBodyNotes: [
+        "⚠️ **Do not merge on its own.** This bumps a code generator, so the committed output under `lib/**` (and `internalfakes/`) no longer matches what it produces — CI's drift guard will fail until it is regenerated. Run `just sync && just gen && go generate ./...` on this branch, commit the result, and review the generated diff before merging.",
+      ],
+    },
   ],
 }
