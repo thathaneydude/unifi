@@ -1,0 +1,34 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  // Shared tier policy (automerge minor/patch/digest, majors PR-only, Actions
+  // grouped) lives in the homelab repo. Same owner, same app installation, so
+  // the preset is fetchable; only unifi-specific overrides belong below.
+  extends: ["github>thathaneydude/homelab//renovate/default.json5"],
+
+  // The preset turns semantic commits off (most repos use plain imperative
+  // subjects); this repo enforces Conventional Commits via .conform.yaml and the
+  // `commit lint` CI job, so they go back on here. `build` is both an allowed
+  // conform type and the Conventional Commits type for dependency changes, and
+  // cliff.toml groups it under "Build & CI" — `fix(deps)` would file bumps under
+  // "Bug Fixes" and `chore(deps)` would drop them from the changelog entirely.
+  semanticCommits: "enabled",
+  semanticCommitType: "build",
+  semanticCommitScope: "deps",
+
+  // Keep go.mod/go.sum consistent with what the drift guard and `go mod verify`
+  // expect, and follow v2+ import-path changes instead of opening a PR that
+  // cannot compile.
+  postUpdateOptions: ["gomodTidy", "gomodUpdateImportPaths"],
+
+  packageRules: [
+    {
+      description: "Go version is a coordinated bump — reviewed PR only",
+      matchManagers: ["gomod"],
+      matchDepNames: ["go", "toolchain"],
+      automerge: false,
+      prBodyNotes: [
+        "⚠️ **Do not merge on its own.** The `go` directive is mirrored by the `go-version:` pins in `.github/workflows/{ci,docs,release,release-on-main,spec-sync}.yml`. Bump those in the same PR or CI builds on a different toolchain than the module declares.",
+      ],
+    },
+  ],
+}
