@@ -30351,7 +30351,7 @@
     },
     "/v1/sites/{siteId}/dns/policies": {
       "get": {
-        "description": "$1e",
+        "description": "$20",
         "operationId": "getDnsPolicyPage",
         "parameters": [
           {
@@ -37776,7 +37776,7 @@
     },
     "/v1/sites/{siteId}/wifi/broadcasts": {
       "get": {
-        "description": "$1d",
+        "description": "$21",
         "operationId": "getWifiBroadcastPage",
         "parameters": [
           {
@@ -39505,18 +39505,6 @@
     }
   ],
   "tags": [
-    {
-      "description": "Provides an overview of the UniFi Network API, including authentication using API keys and request format. \nStart here to understand how to connect and make your first request.\n\n### Introduction\n\nEach UniFi Application has its own API endpoints running locally on each site,\noffering detailed analytics and control related to that specific application.\nFor a single endpoint with high-level insights across all your UniFi sites,\nrefer to the [UniFi Site Manager API](https://developer.ui.com).\n\n### Authentication and Request Format\n\nAn API Key is a unique identifier used to authenticate API requests.\nTo generate API Keys and view an example of the API Request Format,\nvisit the Integrations section of your UniFi application.",
-      "name": "Getting Started"
-    },
-    {
-      "description": "$1c",
-      "name": "Filtering"
-    },
-    {
-      "description": "Describes the standard API error response structure, including error codes,\nstatus names, and troubleshooting guidance.",
-      "name": "Error Handling"
-    },
     {
       "description": "Returns general details about the UniFi Network application,\nincluding version and runtime metadata. Useful for integration validation.",
       "name": "Application Info"

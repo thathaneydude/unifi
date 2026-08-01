@@ -32,6 +32,10 @@ func Validate(spec []byte) error {
 // It resolves all paths relative to the repo root (found via repoRoot).
 // Apps are processed in sorted order for deterministic error messages.
 func Sync(cfg *Config) error {
+	if err := cfg.Validate(); err != nil {
+		return fmt.Errorf("sync: %w", err)
+	}
+
 	root, err := repoRoot()
 	if err != nil {
 		return fmt.Errorf("sync: %w", err)
@@ -49,7 +53,7 @@ func Sync(cfg *Config) error {
 	for _, app := range apps {
 		appCfg := cfg.Apps[app]
 		for _, ver := range appCfg.Versions {
-			if err := syncOne(root, mirror, app, ver); err != nil {
+			if err := syncOne(root, mirror, cfg.MirrorCommit, app, ver); err != nil {
 				return err
 			}
 		}
@@ -58,12 +62,16 @@ func Sync(cfg *Config) error {
 	return nil
 }
 
-func syncOne(root, mirror, app, ver string) error {
+func syncOne(root, mirror, commit, app, ver string) error {
 	// TODO(specgen): Replace the dependency on the opastorello/unifi-api-docs mirror with a
 	// native Go implementation that pulls the spec directly from the official UniFi source
 	// (developer.ui.com / its underlying data endpoints) and performs the OpenAPI conversion
 	// in-process, removing the external mirror dependency. See ADR-0003 "Future work".
-	url := fmt.Sprintf("%s/%s/%s/openapi.json", mirror, app, ver)
+	//
+	// commit is a full SHA (enforced by Config.Validate), not a ref: the mirror
+	// rewrites specs in place under an unchanged version directory, so the
+	// version alone does not pin the bytes.
+	url := fmt.Sprintf("%s/%s/%s/%s/openapi.json", mirror, commit, app, ver)
 
 	// Fetch.
 	resp, err := httpClient.Get(url)

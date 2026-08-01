@@ -1,6 +1,21 @@
 # Source of truth for pinned UniFi application versions.
 # The spec-sync bot appends new versions (coexist) and moves `default`.
-mirror: https://raw.githubusercontent.com/opastorello/unifi-api-docs/HEAD
+mirror: https://raw.githubusercontent.com/opastorello/unifi-api-docs
+
+# Immutable pin for the mirror repo. MUST be a full 40-character commit SHA;
+# specgen rejects anything else.
+#
+# This was the ref `HEAD` until 2026-07-31, so `just sync` fetched whatever the
+# mirror held at the moment it ran. The mirror re-scrapes developer.ui.com and
+# rewrites specs in place under an unchanged version directory, which meant a
+# spec that was correct when committed silently stopped matching a fresh fetch
+# and CI's drift guard failed with nothing in this repo having changed. The
+# version below pins the API; this pins the bytes.
+#
+# The spec-sync workflow advances this line to the mirror's current HEAD and
+# opens a PR with the resulting spec diff — that is the intended way to bump it.
+mirror-commit: 6425bbc2e248a956070500877ce0cd24aedddd43
+
 retain: all
 apps:
   network:
