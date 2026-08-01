@@ -19,8 +19,9 @@ jobs:
     name: build / drift-guard / lint
     runs-on: ubuntu-latest
     # Only the repository owner and the Renovate app may trigger CI. The repo is
-    # private with the owner as the sole collaborator; this guard keeps CI closed
-    # even if visibility or collaborators change.
+    # public, so this guard is what keeps CI from running on pull requests from
+    # arbitrary outside contributors; it holds regardless of visibility or
+    # collaborator changes.
     #
     # The bot MUST be listed here. A job skipped by this guard reports a
     # "skipped" conclusion, which Renovate reads as passing — excluding the bot
