@@ -9,6 +9,93 @@ history, so it is maintained by hand. New entries are prepended above it by
 would clobber this baseline.
 -->
 
+## [0.4.0] - 2026-08-01
+
+### Features
+
+- **renovate:** Hold code-generator bumps to reviewed PRs (#28)
+
+
+## [0.3.6] - 2026-08-01
+
+### Build & CI
+
+- **deps:** Update dependency python to 3.14 (#17)
+
+
+### Documentation
+
+- **ci:** Record why release-on-main stays owner-only; fix stale repo claims (#26)
+
+
+## [0.3.5] - 2026-08-01
+
+### Bug Fixes
+
+- **release:** Stop discarding the git-cliff release notes (#21)
+
+
+## [0.3.4] - 2026-08-01
+
+### Bug Fixes
+
+- **release:** Group dependency bumps under Build & CI regardless of type (#20)
+
+
+## [0.3.3] - 2026-08-01
+
+### Build & CI
+
+- **deps:** Update module github.com/onsi/gomega to v1.42.1 (#16)
+
+- **deps:** Force the build(deps) commit type past config:recommended (#19)
+
+
+## [0.3.2] - 2026-08-01
+
+### Build & CI
+
+- Onboard the repo with Renovate (#14)
+
+
+## [0.3.1] - 2026-08-01
+
+### Bug Fixes
+
+- **specs:** Pin the upstream mirror to an immutable commit (#15)
+
+
+## [0.3.0] - 2026-06-23
+
+### Features
+
+- **cli:** Enumerate consoles and target by name for remote accounts (#13)
+
+
+## [0.2.0] - 2026-06-23
+
+### Build & CI
+
+- Auto-release on main via git-cliff version bump (#12)
+
+
+### Documentation
+
+- **readme:** Add CLI install options for the v0.1.0 release (#6)
+
+
+### Features
+
+- **skills:** Read-only UniFi security-assessment Agent Skills (#7)
+
+- **cli:** Resolve API keys per app (network/protect) with shared fallback (#8)
+
+- **cli:** Ergonomics — site resolution, field selection, redaction, terse discovery (#10)
+
+- **report:** Self-contained UniFi-branded HTML assessment report (#11)
+
+
+
 ## [0.1.0] - 2026-06-21
 
 ### Bug Fixes
