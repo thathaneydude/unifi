@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/coder/websocket v1.8.15
-	github.com/getkin/kin-openapi v0.146.0
+	github.com/getkin/kin-openapi v0.147.0
 	github.com/oapi-codegen/runtime v1.7.0
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.42.1
