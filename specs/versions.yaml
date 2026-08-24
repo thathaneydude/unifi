@@ -14,7 +14,7 @@ mirror: https://raw.githubusercontent.com/opastorello/unifi-api-docs
 #
 # The spec-sync workflow advances this line to the mirror's current HEAD and
 # opens a PR with the resulting spec diff — that is the intended way to bump it.
-mirror-commit: 6425bbc2e248a956070500877ce0cd24aedddd43
+mirror-commit: 7c5a71ea7307dcc27cf3ae40583748bff0867233
 
 retain: all
 apps:
