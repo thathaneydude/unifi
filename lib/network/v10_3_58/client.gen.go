@@ -2647,7 +2647,7 @@ type ClientInterface interface {
 
 	// GetAclRulePage List ACL Rules
 	//
-	// $1e.
+	// $20.
 	//
 	// Corresponds with GET /v1/sites/{siteId}/acl-rules (the `GetAclRulePage` operationId).
 	GetAclRulePage(ctx context.Context, siteId openapi_types.UUID, params *GetAclRulePageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2890,7 +2890,7 @@ type ClientInterface interface {
 
 	// GetDnsPolicyPage List DNS Policies
 	//
-	// $1f.
+	// $21.
 	//
 	// Corresponds with GET /v1/sites/{siteId}/dns/policies (the `GetDnsPolicyPage` operationId).
 	GetDnsPolicyPage(ctx context.Context, siteId openapi_types.UUID, params *GetDnsPolicyPageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3498,7 +3498,7 @@ type ClientInterface interface {
 
 	// GetWifiBroadcastPage List Wifi Broadcasts
 	//
-	// $20.
+	// $22.
 	//
 	// Corresponds with GET /v1/sites/{siteId}/wifi/broadcasts (the `GetWifiBroadcastPage` operationId).
 	GetWifiBroadcastPage(ctx context.Context, siteId openapi_types.UUID, params *GetWifiBroadcastPageParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3712,7 +3712,7 @@ func (c *Client) GetSiteOverviewPage(ctx context.Context, params *GetSiteOvervie
 
 // GetAclRulePage List ACL Rules
 //
-// $1e.
+// $20.
 //
 // Corresponds with GET /v1/sites/{siteId}/acl-rules (the `GetAclRulePage` operationId).
 func (c *Client) GetAclRulePage(ctx context.Context, siteId openapi_types.UUID, params *GetAclRulePageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -4205,7 +4205,7 @@ func (c *Client) GetAdoptedDeviceLatestStatistics(ctx context.Context, siteId op
 
 // GetDnsPolicyPage List DNS Policies
 //
-// $1f.
+// $21.
 //
 // Corresponds with GET /v1/sites/{siteId}/dns/policies (the `GetDnsPolicyPage` operationId).
 func (c *Client) GetDnsPolicyPage(ctx context.Context, siteId openapi_types.UUID, params *GetDnsPolicyPageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -5383,7 +5383,7 @@ func (c *Client) GetWansOverviewPage(ctx context.Context, siteId openapi_types.U
 
 // GetWifiBroadcastPage List Wifi Broadcasts
 //
-// $20.
+// $22.
 //
 // Corresponds with GET /v1/sites/{siteId}/wifi/broadcasts (the `GetWifiBroadcastPage` operationId).
 func (c *Client) GetWifiBroadcastPage(ctx context.Context, siteId openapi_types.UUID, params *GetWifiBroadcastPageParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -9936,7 +9936,7 @@ type ClientWithResponsesInterface interface {
 
 	// GetAclRulePageWithResponse List ACL Rules
 	//
-	// $1e.
+	// $20.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -10201,7 +10201,7 @@ type ClientWithResponsesInterface interface {
 
 	// GetDnsPolicyPageWithResponse List DNS Policies
 	//
-	// $1f.
+	// $21.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -10871,7 +10871,7 @@ type ClientWithResponsesInterface interface {
 
 	// GetWifiBroadcastPageWithResponse List Wifi Broadcasts
 	//
-	// $20.
+	// $22.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -16590,7 +16590,7 @@ func (c *ClientWithResponses) GetSiteOverviewPageWithResponse(ctx context.Contex
 
 // GetAclRulePageWithResponse List ACL Rules
 //
-// $1e.
+// $20.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -17005,7 +17005,7 @@ func (c *ClientWithResponses) GetAdoptedDeviceLatestStatisticsWithResponse(ctx c
 
 // GetDnsPolicyPageWithResponse List DNS Policies
 //
-// $1f.
+// $21.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -18017,7 +18017,7 @@ func (c *ClientWithResponses) GetWansOverviewPageWithResponse(ctx context.Contex
 
 // GetWifiBroadcastPageWithResponse List Wifi Broadcasts
 //
-// $20.
+// $22.
 //
 // Returns a wrapper object for the known response body format(s).
 //
