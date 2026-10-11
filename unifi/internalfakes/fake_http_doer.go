@@ -11,10 +11,8 @@ import (
 type FakeHTTPDoer struct {
 	DoStub        func(*http.Request) (*http.Response, error)
 	doMutex       sync.RWMutex
-	doArgsForCall []struct {
-		arg1 *http.Request
-	}
-	doReturns struct {
+	doArgsForCall []FakeHTTPDoerDoArgs
+	doReturns     struct {
 		result1 *http.Response
 		result2 error
 	}
@@ -23,15 +21,19 @@ type FakeHTTPDoer struct {
 		result2 error
 	}
 	invocations      map[string][][]interface{}
+	callOrder        []string
 	invocationsMutex sync.RWMutex
+}
+
+// FakeHTTPDoerDoArgs holds the arguments of one call to Do.
+type FakeHTTPDoerDoArgs struct {
+	Arg1 *http.Request
 }
 
 func (fake *FakeHTTPDoer) Do(arg1 *http.Request) (*http.Response, error) {
 	fake.doMutex.Lock()
 	ret, specificReturn := fake.doReturnsOnCall[len(fake.doArgsForCall)]
-	fake.doArgsForCall = append(fake.doArgsForCall, struct {
-		arg1 *http.Request
-	}{arg1})
+	fake.doArgsForCall = append(fake.doArgsForCall, FakeHTTPDoerDoArgs{arg1})
 	stub := fake.DoStub
 	fakeReturns := fake.doReturns
 	fake.recordInvocation("Do", []interface{}{arg1})
@@ -61,7 +63,15 @@ func (fake *FakeHTTPDoer) DoArgsForCall(i int) *http.Request {
 	fake.doMutex.RLock()
 	defer fake.doMutex.RUnlock()
 	argsForCall := fake.doArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeHTTPDoer) DoArgs() []FakeHTTPDoerDoArgs {
+	fake.doMutex.RLock()
+	defer fake.doMutex.RUnlock()
+	args := make([]FakeHTTPDoerDoArgs, len(fake.doArgsForCall))
+	copy(args, fake.doArgsForCall)
+	return args
 }
 
 func (fake *FakeHTTPDoer) DoReturns(result1 *http.Response, result2 error) {
@@ -100,9 +110,18 @@ func (fake *FakeHTTPDoer) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
+func (fake *FakeHTTPDoer) CallOrder() []string {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	order := make([]string, len(fake.callOrder))
+	copy(order, fake.callOrder)
+	return order
+}
+
 func (fake *FakeHTTPDoer) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
+	fake.callOrder = append(fake.callOrder, key)
 	if fake.invocations == nil {
 		fake.invocations = map[string][][]interface{}{}
 	}
