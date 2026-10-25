@@ -11,8 +11,10 @@ on:
   workflow_dispatch:
 
 # Least privilege: read-only by default; the resync job adds the write access
-# needed to push the bot branch and open a PR. The GITHUB_TOKEN is referenced
-# only by the create-pull-request step.
+# needed to push the bot branch and open a PR. The create-pull-request step
+# uses the SPEC_SYNC_TOKEN PAT instead of GITHUB_TOKEN because PRs opened with
+# GITHUB_TOKEN trigger no workflows, so the PR would never get any checks. The
+# mirror-pin step still uses GITHUB_TOKEN, only to read a public repo.
 permissions:
   contents: read
 
@@ -75,7 +77,7 @@ jobs:
       - name: Open PR if anything changed
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SPEC_SYNC_TOKEN }}
           branch: bot/spec-resync
           commit-message: "chore(specs): advance the mirror pin and re-sync specs"
           title: "chore(specs): advance the mirror pin and re-sync specs"
