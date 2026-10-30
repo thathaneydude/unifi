@@ -152,4 +152,4 @@ jobs:
       # Tag v0.1.0-alpha.31 verified via:
       #   git ls-remote --tags https://github.com/siderolabs/conform
       - name: Enforce Conventional Commits
-        uses: siderolabs/conform@v0.1.0-alpha.31
+        uses: siderolabs/conform@v0.1.0-alpha.32
