@@ -30,7 +30,7 @@ commit_preprocessors = []
 commit_parsers = [
   { message = "^feat", group = "Features" },
   # Dependency bumps belong in "Build & CI" whatever type they carry. Renovate
-  # is configured for `build(deps)` (renovate.json5), but these two rules are
+  # is configured for `build(deps)` (`repos/unifi.json5` in thathaneydude/renovate), but these two rules are
   # the backstop for anything that arrives otherwise — a hand-made bump, or the
   # config:recommended packageRules silently reasserting `fix`/`chore`, which is
   # how v0.3.3 shipped a gomega bump under "Bug Fixes".
