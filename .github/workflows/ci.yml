@@ -138,7 +138,7 @@ jobs:
     name: commit lint
     runs-on: ubuntu-latest
     # Owner + Renovate app, as in `verify` above. Renovate's own commits are
-    # conventional (`build(deps): ...`, configured in renovate.json5), so this
+    # conventional (`build(deps): ...`, configured in `repos/unifi.json5` in `thathaneydude/renovate`), so this
     # check is meaningful on its PRs rather than a formality.
     if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' }}
     permissions:
