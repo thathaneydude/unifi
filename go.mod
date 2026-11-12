@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/coder/websocket v1.8.15
-	github.com/getkin/kin-openapi v0.152.0
+	github.com/getkin/kin-openapi v0.153.0
 	github.com/oapi-codegen/runtime v1.9.0
 	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
@@ -174,8 +174,6 @@ require (
 	github.com/nishanths/predeclared v0.3.0 // indirect
 	github.com/nunnatsa/ginkgolinter v0.24.0 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.8.0 // indirect
-	github.com/oasdiff/yaml v0.1.1 // indirect
-	github.com/oasdiff/yaml3 v0.0.14 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/princjef/gomarkdoc v1.1.0 // indirect
@@ -244,6 +242,7 @@ require (
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go.yaml.in/yaml/v4 v4.0.0 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20260811152304-ee035b5b010f // indirect
 	golang.org/x/mod v0.42.0 // indirect
