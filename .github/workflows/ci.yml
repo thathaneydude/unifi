@@ -26,7 +26,11 @@ jobs:
     # The bot MUST be listed here. A job skipped by this guard reports a
     # "skipped" conclusion, which Renovate reads as passing — excluding the bot
     # would let dependency PRs automerge with no CI having run at all.
-    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' }}
+    #
+    # The Hephaestus agent App (the homelab software factory) is listed for the
+    # same reason: its PRs must run CI, or its gate would read skipped checks as
+    # passing. It gets no secrets here, and e2e below stays owner-only.
+    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' || github.actor == 'thathaneydude-hephaestus-agent[bot]' }}
     permissions:
       contents: read
     steps:
@@ -74,8 +78,8 @@ jobs:
   unit:
     name: unit tests
     runs-on: ubuntu-latest
-    # Owner + Renovate app, as in `verify` above.
-    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' }}
+    # Owner + Renovate + Hephaestus apps, as in `verify` above.
+    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' || github.actor == 'thathaneydude-hephaestus-agent[bot]' }}
     permissions:
       contents: read
     steps:
@@ -103,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     # Owner-only, deliberately narrower than `verify`/`unit`: this is the only
     # job that can read the real-console credentials, so it does not run for
-    # Renovate's dependency PRs — a freshly bumped third-party module never gets
+    # Hephaestus's PRs or Renovate's dependency PRs — a freshly bumped third-party module never gets
     # to execute against the live console. It skips there, and Renovate still
     # gates automerge on verify + unit + commit-lint.
     if: ${{ github.actor == github.repository_owner }}
@@ -137,10 +141,10 @@ jobs:
   commit-lint:
     name: commit lint
     runs-on: ubuntu-latest
-    # Owner + Renovate app, as in `verify` above. Renovate's own commits are
+    # Owner + Renovate + Hephaestus apps, as in `verify` above. Renovate's own commits are
     # conventional (`build(deps): ...`, configured in `repos/unifi.json5` in `thathaneydude/renovate`), so this
     # check is meaningful on its PRs rather than a formality.
-    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' }}
+    if: ${{ github.actor == github.repository_owner || github.actor == 'renovate-thathaneydude[bot]' || github.actor == 'thathaneydude-hephaestus-agent[bot]' }}
     permissions:
       contents: read
     steps:
